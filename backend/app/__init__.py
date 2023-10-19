@@ -11,7 +11,7 @@ from prometheus_flask_exporter import PrometheusMetrics
 from dotenv import load_dotenv
 load_dotenv()
 
-from hackathon_t.backend.common import my_logging
+from common import my_logging
 logger = my_logging.getLogger("init")
 
 metrics = PrometheusMetrics.for_app_factory()

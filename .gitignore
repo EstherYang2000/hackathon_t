@@ -164,5 +164,4 @@ frontend/node_modules/*
 
 #api key
 
-client_secret.json
 backend/common/client_secret.json

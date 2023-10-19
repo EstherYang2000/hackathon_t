@@ -6,20 +6,28 @@ import os
 import base64
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+import base64
+from email.message import EmailMessage
+import google.auth
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
-def connectPostgres():
-    conn = psycopg2.connect(
-    host="127.0.0.1",  # Use the container name #172.20.0.4
-    database="hacker_TG",
-    user="hacker",
-    password="root",
-    port = "5432"
-    )
-    # select1 = "SELECT * FROM public.empolyee_entry LIMIT 1;"
-    cur = conn.cursor()
-    return cur
+# def connectPostgres():
+#     conn = psycopg2.connect(
+#     host="127.0.0.1",  # Use the container name #172.20.0.4
+#     database="hacker_TG",
+#     user="hacker",
+#     password="root",
+#     port = "5432"
+#     )
+#     # select1 = "SELECT * FROM public.empolyee_entry LIMIT 1;"
+#     cur = conn.cursor()
+#     return cur
 
 
+# gmail = Gmail()
 
 # def create_email(system_prompt:str):
 #     # openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -91,12 +99,8 @@ def connectPostgres():
 
 
 
-
-
 # # Define the scopes and client ID details
 # SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-# # CLIENT_ID = '683632758068-4u4ks5te6t2p3o861ufmjk0geigir411.apps.googleusercontent.com'
-# # CLIENT_SECRET = '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'
 
 # # Create credentials and set up the Gmail API service
 # flow = InstalledAppFlow.from_client_secrets_file('common/client_secret.json', SCOPES)
@@ -108,10 +112,11 @@ def connectPostgres():
 # YOUR_EMAIL_ADDRESS = 'estheryangyujie.mg12@nycu.edu.tw'
 # recipient = 'ester6126@gmail.com'
 # # Compose the email
-# email_message = f"""
+# # Compose the email
+# email_message = """
 # Subject: Your Subject
-# To: {recipient}
-# From: {YOUR_EMAIL_ADDRESS}
+# To: ester6126@gmail.com
+# From: estheryangyujie.mg12@nycu.edu.tw
 # MIME-Version: 1.0
 # Content-type: text/html
 # Content-Transfer-Encoding: 8bit
@@ -121,11 +126,8 @@ def connectPostgres():
 
 # # Encode the email message in base64
 # message_bytes = email_message.encode('utf-8')
-# message_base64 = base64.urlsafe_b64encode(message_bytes)
-# raw_message = message_base64.decode('utf-8')
+# message_base64 = base64.urlsafe_b64encode(message_bytes).decode('utf-8')
 
 # # Send the email
-# message = service.users().messages().send(userId='me', body={'raw': raw_message}).execute()
-
+# message = service.users().messages().send(userId='me', body={'raw': message_base64}).execute()
 # print(f"Message Id: {message['id']}")
-

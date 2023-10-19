@@ -10,4 +10,6 @@ app = Flask(__name__)
 if __name__ == '__main__':
 
     app.run('172.0.0.1', port=5000, debug=True)
+    app.debug = True
+
     # serve(app=app, host='172.0.0.1', port=5000)
