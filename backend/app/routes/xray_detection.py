@@ -42,11 +42,12 @@ def hrDashboard():
     result_dicts = {}
     cursor = conn.cursor()
     if request.method == 'POST':
-        zone = request.values.get('zone')  #ALL、AZ 、HQ
+        data = request.get_json() 
+        zone = data['zone'] #ALL、AZ 、HQ
         print(zone)
-        start_date = request.values.get('start_date')
+        start_date =  data['start_date']
         print(start_date)
-        end_date = request.values.get('end_date')
+        end_date = data['end_date']
         print(end_date)
         sql1 = ""
         sql2 = ""
@@ -191,21 +192,14 @@ def hrWeeklyReport():
     cursor = conn.cursor()
     result_dicts = {}
     if request.method == 'GET':
-        zone = request.values.get('zone')
-        # zone = request.form.get('zone')  #ALL、AZ 、HQ
+        data = request.get_json() 
+        zone = data['zone'] #ALL、AZ 、HQ
         print(zone)
-        dept = request.values.get('dept')
-        # dept = request.form.get('dept')
-        print(dept)
-        start_date = request.values.get('start_date')
+        start_date =  data['start_date']
         print(start_date)
-        # start_date = request.form.get('start_date')
-        # print(start_date)
-        end_date = request.values.get('end_date')
+        end_date = data['end_date']
         print(end_date)
-        # end_date = request.form.get('end_date')
-        # print(end_date)
-        
+        dept =  data['dept']
         sql1 = ""
         sql2 = ""
         sql3 = ""

@@ -12,10 +12,11 @@ app = Flask(__name__)
 @bp.route('/attend', methods=['POST'])
 def security_chart1():
     if request.method == 'POST': 
-        start_time = request.values['start_time'] 
-        end_time = request.values['end_time']
-        depid = request.values['depId'] 
-        zone = request.values['zone']
+        data = request.get_json()
+        start_time = data['start_time'] 
+        end_time = data['end_time']
+        depid = data['depId'] 
+        zone = data['zone']
         zone = f"('{zone}')" if zone != "ALL" else f"('AZ', 'HQ')"
         
 
