@@ -3,7 +3,9 @@ from flask import Response
 from common import my_logging
 from flask import request,jsonify
 from ..metricss import custom_metrics
-import psycopg2
+import requests
+from app.routes.db import conn
+
 _logger = my_logging.getLogger("config")
 # host="127.0.0.1",  # Use the container name #172.20.0.2
 # database="hacker_TG",
@@ -11,18 +13,14 @@ _logger = my_logging.getLogger("config")
 # password="root",
 # port = "5432"
 
-# Connecto to the database
-# db_string = 'postgres://{}:{}@{}:{}/{}'.format(user,  host,password ,port, database)
-# db = create_engine(db_string)
-conn = psycopg2.connect(
-    host="127.0.0.1",  # Use the container name #172.20.0.4
-    database="hacker_TG",
-    user="hacker",
-    password="root",
-    port = "5432"
-    )
+# conn = psycopg2.connect(
+#     host="127.0.0.1",  # Use the container name #172.20.0.5
+#     database="hacker_TG",
+#     user="hacker",
+#     password="root",
+#     port = "5432"
+#     )
     # select1 = "SELECT * FROM public.empolyee_entry LIMIT 1;"
-cursor = conn.cursor()
 
 @bp.route('/upload', methods=['POST','GET'])
 def upload_image():
@@ -33,7 +31,6 @@ def upload_image():
         # image.save('path/to/save/image.jpg')
         if ("abnormal" in image.filename):
             custom_metrics.abnormal_counter.inc()
-
         result = f'{image.filename} is abnormal. Please check it and notice to relevant personnel.'
         _logger.info(result)
 
@@ -43,12 +40,13 @@ def upload_image():
 @bp.route('/hr/dashboard', methods=['POST','GET']) 
 def hrDashboard():
     result_dicts = {}
-    if request.method == 'GET':
-        zone = request.form.get('zone')  #ALL、AZ 、HQ
+    cursor = conn.cursor()
+    if request.method == 'POST':
+        zone = request.values.get('zone')  #ALL、AZ 、HQ
         print(zone)
-        start_date = request.form.get('start_date')
+        start_date = request.values.get('start_date')
         print(start_date)
-        end_date = request.form.get('end_date')
+        end_date = request.values.get('end_date')
         print(end_date)
         sql1 = ""
         sql2 = ""
@@ -190,16 +188,24 @@ def hrDashboard():
 
 @bp.route('/hr/weeklyreport', methods=['POST','GET']) 
 def hrWeeklyReport():
+    cursor = conn.cursor()
     result_dicts = {}
     if request.method == 'GET':
-        zone = request.form.get('zone')  #ALL、AZ 、HQ
+        zone = request.values.get('zone')
+        # zone = request.form.get('zone')  #ALL、AZ 、HQ
         print(zone)
-        dept = request.form.get('dept')
+        dept = request.values.get('dept')
+        # dept = request.form.get('dept')
         print(dept)
-        start_date = request.form.get('start_date')
+        start_date = request.values.get('start_date')
         print(start_date)
-        end_date = request.form.get('end_date')
+        # start_date = request.form.get('start_date')
+        # print(start_date)
+        end_date = request.values.get('end_date')
         print(end_date)
+        # end_date = request.form.get('end_date')
+        # print(end_date)
+        
         sql1 = ""
         sql2 = ""
         sql3 = ""
@@ -394,7 +400,13 @@ def hrWeeklyReport():
     return jsonify(result_dicts)
     
     
-
+@bp.route('/hr/weeklyreport/llm', methods=['POST','GET']) 
+def LLM():
+    #{"week":"37","dept":"DEPT1","LLMtext":""}
+    response2 = requests.get(f'/hr/weeklyreport')
+    data2 = response2.json()
+    print(data2)
+    return Response('Text', 200)
             
             
         
