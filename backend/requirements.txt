@@ -7,6 +7,7 @@ dill==0.3.7
 Flask==2.2.5
 Flask-Cors==4.0.0
 Flask-RESTful==0.3.10
+Flask-SQLAlchemy==3.1.1
 gunicorn==20.1.0
 isort==5.12.0
 itsdangerous==2.1.2
@@ -18,13 +19,14 @@ platformdirs==3.11.0
 prometheus-client==0.17.1
 prometheus-flask-exporter==0.22.4
 psycopg2==2.9.9
-psycopg2-binary==2.9.9
 pylint==2.17.5
 python-dotenv==0.21.1
 pytz==2023.3.post1
 PyYAML==6.0.1
 six==1.16.0
+SQLAlchemy==2.0.22
 tomlkit==0.12.1
+typing_extensions==4.8.0
 waitress==2.1.2
 Werkzeug==3.0.0
 wrapt==1.15.0

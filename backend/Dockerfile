@@ -30,6 +30,10 @@ COPY ./requirements.txt .
 RUN pwd && ls -l
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+RUN pip install psycopg2
+RUN pip install psycopg2-binary
+RUN apt-get install -y python-psycopg2
+
 
 # add entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh

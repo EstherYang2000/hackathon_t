@@ -4,9 +4,16 @@ from common import my_logging
 from flask import request,jsonify
 from ..metricss import custom_metrics
 import psycopg2
-
 _logger = my_logging.getLogger("config")
+# host="127.0.0.1",  # Use the container name #172.20.0.2
+# database="hacker_TG",
+# user="hacker",
+# password="root",
+# port = "5432"
 
+# Connecto to the database
+# db_string = 'postgres://{}:{}@{}:{}/{}'.format(user,  host,password ,port, database)
+# db = create_engine(db_string)
 conn = psycopg2.connect(
     host="127.0.0.1",  # Use the container name #172.20.0.4
     database="hacker_TG",
@@ -48,9 +55,8 @@ def hrDashboard():
         dailyAttendence_list = []
         weeklyLate_list = []
 
-        if zone != "ALL": 
+        if  zone != "ALL":
             
-            # SQL query with placeholders
             sql1 = """
             SELECT
                 zone,
@@ -67,7 +73,7 @@ def hrDashboard():
                     FROM
                         public.empolyee_entry
                     WHERE
-                        (empolyee_entry.zone IN %s)
+                        (empolyee_entry.zone = %s)
                         AND (empolyee_entry.date BETWEEN %s AND %s)
                     GROUP BY
                         empolyee_entry.zone, empolyee_entry.date
@@ -132,7 +138,7 @@ def hrDashboard():
             # Execute the query with parameters
             cursor.execute(sql1, (start_date, end_date))
             dailyAttendence_list = cursor.fetchall()
-            cursor.execute(sql2, (zone, start_date, end_date))
+            cursor.execute(sql2, (start_date, end_date))
             weeklyLate_list = cursor.fetchall()
         # Fetch the results
         dailyAttResult_list = []
@@ -188,6 +194,8 @@ def hrWeeklyReport():
     if request.method == 'GET':
         zone = request.form.get('zone')  #ALL、AZ 、HQ
         print(zone)
+        dept = request.form.get('dept')
+        print(dept)
         start_date = request.form.get('start_date')
         print(start_date)
         end_date = request.form.get('end_date')
@@ -202,6 +210,84 @@ def hrWeeklyReport():
             # 出勤遲到表格
             sql1 = """
                 SELECT
+                    ROW_NUMBER() OVER () AS entry_id,
+                    employee_id,
+                    zone,
+                    entry_count,
+                    late_count,
+                    normal_count
+                FROM(
+                    SELECT
+                        empolyee_entry.empid AS employee_id,
+                        empolyee_entry.zone AS zone,
+                        empolyee_entry.depid AS department,
+                        DATE_TRUNC('week', empolyee_entry.date) AS week_start_date,
+                        COUNT(empolyee_entry.entryid) AS entry_count,
+                        SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late_count,
+                        SUM(CASE WHEN empolyee_entry.lable = 'normal' THEN 1 ELSE 0 END) AS normal_count
+                    FROM
+                        public.empolyee_entry
+                    WHERE
+                        (empolyee_entry.zone = %s)
+                        AND (empolyee_entry.date BETWEEN %s AND %s) 
+                        AND (empolyee_entry.depid = 'DEPT1')
+                    GROUP BY
+                        empolyee_entry.empid, empolyee_entry.zone,empolyee_entry.depid, week_start_date
+                    ORDER BY
+                        empolyee_entry.empid) AS subquery;
+
+            """
+            cursor.execute(sql1, (zone,start_date, end_date))
+            lateTable_list = cursor.fetchall()
+            # #依照部門回傳分廠區跟班別總遲到人數
+            # sql2 = """
+            #     SELECT
+            #         empolyee_entry.zone AS zone,
+            #         empolyee_entry.depid AS department,
+            #         empolyee_entry.empshift  As empshift,
+            #         SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+            #     FROM
+            #         public.empolyee_entry
+            #     WHERE
+            #         (empolyee_entry.date BETWEEN %s AND %s)  
+            #         AND (empolyee_entry.depid = %s)
+            #     GROUP BY
+            #         empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
+            #     ORDER BY
+            #         empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
+            # """
+            # cursor.execute(sql2, (start_date, end_date,dept))
+            # lateDeptCount_list = cursor.fetchall()
+            # #星期一到五的分廠區跟總遲到人數(histogram)
+            # sql3 = """
+            # SELECT
+            #     empolyee_entry.zone AS zone,
+            #     empolyee_entry.depid AS department,
+            #     empolyee_entry.date AS date,
+            #     SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+            # FROM
+            #     public.empolyee_entry
+            # WHERE
+            #     (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
+            # GROUP BY
+            #     empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
+            # ORDER BY
+            #     empolyee_entry.zone,empolyee_entry.depid;         
+            # """
+            # cursor.execute(sql3, (start_date, end_date,dept))
+            # weeklyZoneLateCount_list = cursor.fetchall()
+        else:
+            #出勤遲到表格
+            sql1 = """
+            SELECT
+                ROW_NUMBER() OVER () AS entry_id,
+                employee_id,
+                zone,
+                entry_count,
+                late_count,
+                normal_count
+            FROM(
+                SELECT
                     empolyee_entry.empid AS employee_id,
                     empolyee_entry.zone AS zone,
                     empolyee_entry.depid AS department,
@@ -212,146 +298,81 @@ def hrWeeklyReport():
                 FROM
                     public.empolyee_entry
                 WHERE
-                    (empolyee_entry.zone = %s)
-                    AND (empolyee_entry.date BETWEEN %s AND %s)  -- Specify your date range here
+                    (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
+                    AND (empolyee_entry.date BETWEEN '2023-09-11' AND '2023-09-17') 
+                    AND (empolyee_entry.depid = 'DEPT1')
                 GROUP BY
                     empolyee_entry.empid, empolyee_entry.zone,empolyee_entry.depid, week_start_date
                 ORDER BY
-                    empolyee_entry.empid;
-            """
-            cursor.execute(sql1, (zone,start_date, end_date))
-            lateTable_list = cursor.fetchall()
-            #依照部門回傳分廠區跟班別總遲到人數
-            sql2 = """
-                SELECT
-                    empolyee_entry.zone AS zone,
-                    empolyee_entry.depid AS department,
-                    empolyee_entry.empshift  As empshift,
-                    SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-                FROM
-                    public.empolyee_entry
-                WHERE
-                    (empolyee_entry.zone = %s)
-                    AND (empolyee_entry.date BETWEEN %s AND %s)  -- Specify your date range here
-                GROUP BY
-                    empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
-                ORDER BY
-                    empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
-            """
-            cursor.execute(sql2, (zone,start_date, end_date))
-            lateDeptCount_list = cursor.fetchall()
-            #星期一到五的分廠區跟總遲到人數(histogram)
-            sql3 = """
-            SELECT
-                empolyee_entry.zone AS zone,
-                empolyee_entry.depid AS department,
-                empolyee_entry.date AS date,
-                SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-            FROM
-                public.empolyee_entry
-            WHERE
-                (empolyee_entry.zone = %s)
-                AND empolyee_entry.date BETWEEN %s AND %s
-            GROUP BY
-                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
-            ORDER BY
-                empolyee_entry.zone,empolyee_entry.depid;         
-            """
-            cursor.execute(sql3, (zone,start_date, end_date))
-            weeklyZoneLateCount_list = cursor.fetchall()
-        else:
-            #出勤遲到表格
-            sql1 = """
-            SELECT
-                empolyee_entry.empid AS employee_id,
-                empolyee_entry.zone AS zone,
-                empolyee_entry.depid AS department,
-                DATE_TRUNC('week', empolyee_entry.date) AS week_start_date,
-                COUNT(empolyee_entry.entryid) AS entry_count,
-                SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late_count,
-                SUM(CASE WHEN empolyee_entry.lable = 'normal' THEN 1 ELSE 0 END) AS normal_count
-            FROM
-                public.empolyee_entry
-            WHERE
-                (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
-                AND (empolyee_entry.date BETWEEN %s AND %s)  -- Specify your date range here
-            GROUP BY
-                empolyee_entry.empid, empolyee_entry.zone, empolyee_entry.depid ,week_start_date
-            ORDER BY
-                empolyee_entry.empid;
-            
+                    empolyee_entry.empid) AS subquery;
+
             """
             cursor.execute(sql1, (start_date, end_date))
             lateTable_list = cursor.fetchall()
             #依照部門回傳分廠區跟班別總遲到人數
-            sql2 = """
-                SELECT
-                    empolyee_entry.zone AS zone,
-                    empolyee_entry.depid AS department,
-                    empolyee_entry.empshift  As empshift,
-                    SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-                FROM
-                    public.empolyee_entry
-                WHERE
-                    (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
-                    AND empolyee_entry.date BETWEEN %s AND %s  -- Specify your date range here
-                GROUP BY
-                    empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
-                ORDER BY
-                    empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
-            
-            """
-            cursor.execute(sql2, (start_date, end_date))
-            lateDeptCount_list = cursor.fetchall()
-            #星期一到五的分廠區跟總遲到人數(histogram)
-            sql3 = """
+        sql2 = """
             SELECT
                 empolyee_entry.zone AS zone,
-                empolyee_entry.depid AS department,
-                empolyee_entry.date AS date,
+                empolyee_entry.empshift  As empshift,
                 SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
             FROM
                 public.empolyee_entry
             WHERE
                 (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
-                AND empolyee_entry.date BETWEEN %s AND %s
+                AND (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
             GROUP BY
-                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
+                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
             ORDER BY
-                empolyee_entry.zone,empolyee_entry.depid;
-                               
-            """
-            cursor.execute(sql3, (start_date, end_date))
-            weeklyZoneLateCount_list = cursor.fetchall()
+                empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
+        
+        """
+        cursor.execute(sql2, (start_date, end_date,dept))
+        lateDeptCount_list = cursor.fetchall()
+        #星期一到五的分廠區跟總遲到人數(histogram)
+        sql3 = """
+        SELECT
+            empolyee_entry.zone AS zone,
+            empolyee_entry.date AS date,
+            SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+        FROM
+            public.empolyee_entry
+        WHERE
+            (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
+            AND (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
+        GROUP BY
+            empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
+        ORDER BY
+            empolyee_entry.zone,empolyee_entry.depid;
+                            
+        """
+        cursor.execute(sql3, (start_date, end_date,dept))
+        weeklyZoneLateCount_list = cursor.fetchall()
             
         
         lateTableResult_list = [
                 {
-                    'employee_id': row[0],
-                    'zone': row[1],
-                    'department': row[2],
-                    'week_start_date':row[3].strftime('%Y-%m-%d'),
-                    'entry_count':row[4],
-                    'late_count':row[5],
-                    'normal_count':row[6], 
+                    'entry_id':row[0],
+                    'employee_id': row[1],
+                    'zone': row[2],
+                    'entry_count':row[3],
+                    'late_count':row[4],
+                    'normal_count':row[5], 
                 }
                 for row in lateTable_list
             ]
         lateDeptCountResult_list =  [
                 {
                     'zone': row[0],
-                    'department': row[1],
-                    'empshift':row[2].strftime('%H:%M:%S'),
-                    'late_count':row[3],
+                    'empshift':row[1].strftime('%H:%M:%S'),
+                    'late_count':row[2],
                 }
                 for row in lateDeptCount_list
         ]
         weeklyZoneLateResult_list =  [
                 {
                     'zone': row[0],
-                    'department': row[1],
-                    'date':row[2].strftime('%Y-%m-%d %A'),
-                    'late_count':row[3],
+                    'date':row[1].strftime('%Y-%m-%d %A'),
+                    'late_count':row[2],
                 }
                 for row in weeklyZoneLateCount_list
         ]
@@ -359,9 +380,7 @@ def hrWeeklyReport():
         result_dicts = {
             "lateTable" :lateTableResult_list,
             "lateDeptCount" :lateDeptCountResult_list,
-            "weeklyZoneLateCount" :weeklyZoneLateResult_list,
-            "LLMText": ""
-            
+            "weeklyZoneLateCount" :weeklyZoneLateResult_list,            
         }
     else:
         result_dicts = {
