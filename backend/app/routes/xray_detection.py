@@ -20,7 +20,6 @@ _logger = my_logging.getLogger("config")
 #     password="root",
 #     port = "5432"
 #     )
-    # select1 = "SELECT * FROM public.empolyee_entry LIMIT 1;"
 
 @bp.route('/upload', methods=['POST','GET'])
 def upload_image():
@@ -77,23 +76,25 @@ def hrDashboard():
                     GROUP BY
                         empolyee_entry.zone, empolyee_entry.date
                 )AS subquery
-            GROUP BY
-                zone;
+            GROUP BY zone;
             """
             
             sql2 = """
             SELECT
-                empolyee_entry.date,
-            -- 	COUNT(empolyee_entry.entryid) as entry_count,
-                COUNT(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE NULL END) AS late_count
-            --     COUNT(CASE WHEN empolyee_entry.lable = 'normal' THEN 1 ELSE NULL END) AS normal_count
+                date,
+                SUM(late_count) AS late_count
             FROM
-                public.empolyee_entry
-            WHERE
-                (empolyee_entry.zone = %s)
-                AND (empolyee_entry.date BETWEEN %s AND %s)
-            GROUP BY empolyee_entry.zone,empolyee_entry.date;
-            
+                (SELECT
+                    empolyee_entry.date AS date,
+                    COUNT(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE NULL END) AS late_count
+                FROM
+                    public.empolyee_entry
+                WHERE
+                    (empolyee_entry.zone = %s) AND
+                    empolyee_entry.date BETWEEN %s AND %s
+                GROUP BY empolyee_entry.date) AS subquery
+            GROUP BY date;
+
             """
             # Execute the query with parameters
             cursor.execute(sql1, (zone, start_date, end_date))
@@ -118,21 +119,22 @@ def hrDashboard():
                         (empolyee_entry.date BETWEEN %s AND %s)
                     GROUP BY
                         empolyee_entry.zone, empolyee_entry.date
-                )AS subquery
-            ;
+                )AS subquery;
             """
             sql2 = """
             SELECT
-                empolyee_entry.date,
-            -- 	COUNT(empolyee_entry.entryid) as entry_count,
-                COUNT(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE NULL END) AS late_count
-            --     COUNT(CASE WHEN empolyee_entry.lable = 'normal' THEN 1 ELSE NULL END) AS normal_count
+                date,
+                SUM(late_count) AS late_count
             FROM
-                public.empolyee_entry
-            WHERE
-                empolyee_entry.date BETWEEN %s AND %s
-            GROUP BY empolyee_entry.zone,empolyee_entry.date;
-            
+                (SELECT
+                    empolyee_entry.date AS date,
+                    COUNT(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE NULL END) AS late_count
+                FROM
+                    public.empolyee_entry
+                WHERE
+                    empolyee_entry.date BETWEEN %s AND %s
+                GROUP BY empolyee_entry.date) AS subquery
+            GROUP BY date;
             """
             # Execute the query with parameters
             cursor.execute(sql1, (start_date, end_date))
@@ -230,52 +232,54 @@ def hrWeeklyReport():
                     WHERE
                         (empolyee_entry.zone = %s)
                         AND (empolyee_entry.date BETWEEN %s AND %s) 
-                        AND (empolyee_entry.depid = 'DEPT1')
+                        AND (empolyee_entry.depid = %s)
                     GROUP BY
                         empolyee_entry.empid, empolyee_entry.zone,empolyee_entry.depid, week_start_date
                     ORDER BY
                         empolyee_entry.empid) AS subquery;
 
             """
-            cursor.execute(sql1, (zone,start_date, end_date))
+            cursor.execute(sql1, (zone,start_date, end_date,dept))
             lateTable_list = cursor.fetchall()
             # #依照部門回傳分廠區跟班別總遲到人數
-            # sql2 = """
-            #     SELECT
-            #         empolyee_entry.zone AS zone,
-            #         empolyee_entry.depid AS department,
-            #         empolyee_entry.empshift  As empshift,
-            #         SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-            #     FROM
-            #         public.empolyee_entry
-            #     WHERE
-            #         (empolyee_entry.date BETWEEN %s AND %s)  
-            #         AND (empolyee_entry.depid = %s)
-            #     GROUP BY
-            #         empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
-            #     ORDER BY
-            #         empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
-            # """
-            # cursor.execute(sql2, (start_date, end_date,dept))
-            # lateDeptCount_list = cursor.fetchall()
-            # #星期一到五的分廠區跟總遲到人數(histogram)
-            # sql3 = """
-            # SELECT
-            #     empolyee_entry.zone AS zone,
-            #     empolyee_entry.depid AS department,
-            #     empolyee_entry.date AS date,
-            #     SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-            # FROM
-            #     public.empolyee_entry
-            # WHERE
-            #     (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
-            # GROUP BY
-            #     empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
-            # ORDER BY
-            #     empolyee_entry.zone,empolyee_entry.depid;         
-            # """
-            # cursor.execute(sql3, (start_date, end_date,dept))
-            # weeklyZoneLateCount_list = cursor.fetchall()
+            sql2 = """
+                SELECT
+                    empolyee_entry.zone AS zone,
+                    empolyee_entry.depid AS department,
+                    empolyee_entry.empshift  As empshift,
+                    SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+                FROM
+                    public.empolyee_entry
+                WHERE
+                    (empolyee_entry.date BETWEEN %s AND %s)  
+                    AND (empolyee_entry.depid = %s)
+                    AND (empolyee_entry.zone = %s)
+                GROUP BY
+                    empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
+                ORDER BY
+                    empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
+            """
+            cursor.execute(sql2, (start_date, end_date,dept,zone))
+            lateDeptCount_list = cursor.fetchall()
+            #星期一到五的分廠區跟總遲到人數(histogram)
+            sql3 = """
+            SELECT
+                empolyee_entry.zone AS zone,
+                empolyee_entry.depid AS department,
+                empolyee_entry.date AS date,
+                SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+            FROM
+                public.empolyee_entry
+            WHERE
+                (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
+                AND(empolyee_entry.zone = %s)
+            GROUP BY
+                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
+            ORDER BY
+                empolyee_entry.zone,empolyee_entry.depid;         
+            """
+            cursor.execute(sql3, (start_date, end_date,dept,zone))
+            weeklyZoneLateCount_list = cursor.fetchall()
         else:
             #出勤遲到表格
             sql1 = """
@@ -299,21 +303,40 @@ def hrWeeklyReport():
                     public.empolyee_entry
                 WHERE
                     (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
-                    AND (empolyee_entry.date BETWEEN '2023-09-11' AND '2023-09-17') 
-                    AND (empolyee_entry.depid = 'DEPT1')
+                    AND (empolyee_entry.date BETWEEN  %s AND  %s) 
+                    AND (empolyee_entry.depid = %s)
                 GROUP BY
                     empolyee_entry.empid, empolyee_entry.zone,empolyee_entry.depid, week_start_date
                 ORDER BY
                     empolyee_entry.empid) AS subquery;
 
             """
-            cursor.execute(sql1, (start_date, end_date))
+            cursor.execute(sql1, (start_date, end_date,dept))
             lateTable_list = cursor.fetchall()
             #依照部門回傳分廠區跟班別總遲到人數
-        sql2 = """
+            sql2 = """
+                SELECT
+                    empolyee_entry.zone AS zone,
+                    empolyee_entry.empshift  As empshift,
+                    SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
+                FROM
+                    public.empolyee_entry
+                WHERE
+                    (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
+                    AND (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
+                GROUP BY
+                    empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
+                ORDER BY
+                    empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
+            
+            """
+            cursor.execute(sql2, (start_date, end_date,dept))
+            lateDeptCount_list = cursor.fetchall()
+            #星期一到五的分廠區跟總遲到人數(histogram)
+            sql3 = """
             SELECT
                 empolyee_entry.zone AS zone,
-                empolyee_entry.empshift  As empshift,
+                empolyee_entry.date AS date,
                 SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
             FROM
                 public.empolyee_entry
@@ -321,38 +344,19 @@ def hrWeeklyReport():
                 (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
                 AND (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
             GROUP BY
-                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.empshift
+                empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
             ORDER BY
-                empolyee_entry.zone,empolyee_entry.depid,empolyee_entry.empshift;
-        
-        """
-        cursor.execute(sql2, (start_date, end_date,dept))
-        lateDeptCount_list = cursor.fetchall()
-        #星期一到五的分廠區跟總遲到人數(histogram)
-        sql3 = """
-        SELECT
-            empolyee_entry.zone AS zone,
-            empolyee_entry.date AS date,
-            SUM(CASE WHEN empolyee_entry.lable = 'late' THEN 1 ELSE 0 END) AS late
-        FROM
-            public.empolyee_entry
-        WHERE
-            (empolyee_entry.zone = 'AZ' OR empolyee_entry.zone = 'HQ')
-            AND (empolyee_entry.date BETWEEN %s AND %s) AND (empolyee_entry.depid = %s)
-        GROUP BY
-            empolyee_entry.zone,empolyee_entry.depid, empolyee_entry.date
-        ORDER BY
-            empolyee_entry.zone,empolyee_entry.depid;
-                            
-        """
-        cursor.execute(sql3, (start_date, end_date,dept))
-        weeklyZoneLateCount_list = cursor.fetchall()
+                empolyee_entry.zone,empolyee_entry.depid;
+                                
+            """
+            cursor.execute(sql3, (start_date, end_date,dept))
+            weeklyZoneLateCount_list = cursor.fetchall()
             
         
         lateTableResult_list = [
                 {
-                    'entry_id':row[0],
-                    'employee_id': row[1],
+                    'entry_id':f'entry_{row[0]:05d}',
+                    'empid':row[1],
                     'zone': row[2],
                     'entry_count':row[3],
                     'late_count':row[4],
@@ -360,22 +364,40 @@ def hrWeeklyReport():
                 }
                 for row in lateTable_list
             ]
-        lateDeptCountResult_list =  [
+        if zone != 'ALL':
+            lateDeptCountResult_list =  [
+                    {
+                        'zone': row[0],
+                        'empshift':row[2].strftime('%H:%M:%S'),
+                        'late_count':row[3],
+                    }
+                    for row in lateDeptCount_list
+            ]
+            weeklyZoneLateResult_list =  [
                 {
                     'zone': row[0],
-                    'empshift':row[1].strftime('%H:%M:%S'),
-                    'late_count':row[2],
-                }
-                for row in lateDeptCount_list
-        ]
-        weeklyZoneLateResult_list =  [
-                {
-                    'zone': row[0],
-                    'date':row[1].strftime('%Y-%m-%d %A'),
-                    'late_count':row[2],
+                    'date':row[2].strftime('%Y-%m-%d'),
+                    'late_count':row[3],
                 }
                 for row in weeklyZoneLateCount_list
-        ]
+            ]
+        else:
+            lateDeptCountResult_list =  [
+                    {
+                        'zone': row[0],
+                        'empshift':row[1].strftime('%H:%M:%S'),
+                        'late_count':row[2],
+                    }
+                    for row in lateDeptCount_list
+            ]
+            weeklyZoneLateResult_list =  [
+                    {
+                        'zone': row[0],
+                        'date':row[1].strftime('%Y-%m-%d'),
+                        'late_count':row[2],
+                    }
+                    for row in weeklyZoneLateCount_list
+            ]
             
         result_dicts = {
             "lateTable" :lateTableResult_list,
@@ -394,13 +416,13 @@ def hrWeeklyReport():
     return jsonify(result_dicts)
     
     
-@bp.route('/hr/weeklyreport/llm', methods=['POST','GET']) 
-def LLM():
-    #{"week":"37","dept":"DEPT1","LLMtext":""}
-    response2 = requests.get(f'/hr/weeklyreport')
-    data2 = response2.json()
-    print(data2)
-    return Response('Text', 200)
+# @bp.route('hr/weeklyreport/llm', methods=['POST','GET']) 
+# def LLM():
+#     #{"week":"37","dept":"DEPT1","LLMtext":""}
+#     # response2 = requests.get(f'/hr/weeklyreport')
+#     # data2 = response2.json()
+#     # print(data2)
+#     return Response("data2", 200)
             
             
         
