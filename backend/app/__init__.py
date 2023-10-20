@@ -11,8 +11,8 @@ from prometheus_flask_exporter import PrometheusMetrics
 from dotenv import load_dotenv
 load_dotenv()
 
-from common import logging
-logger = logging.getLogger("init")
+from common import my_logging
+logger = my_logging.getLogger("init")
 
 metrics = PrometheusMetrics.for_app_factory()
 

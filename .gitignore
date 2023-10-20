@@ -161,3 +161,13 @@ cython_debug/
 backend/hackthon/*
 backend/logs/*
 frontend/node_modules/*
+
+#api key
+
+backend/common/client_secret.json
+backend/requirements.txt
+
+# venv
+tsmc
+
+postgres-data/
