@@ -4,7 +4,7 @@ from flask import Response
 from flask import request,jsonify
 import psycopg2
 import pandas as pd
-from hackathon_t.backend.app.routes.db import conn
+from app.routes.db import conn
 from . import bp
 
 # conn = psycopg2.connect(

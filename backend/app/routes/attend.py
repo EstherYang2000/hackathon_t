@@ -3,14 +3,14 @@ from flask import Response
 from flask import request,jsonify
 import psycopg2
 import pandas as pd
-from db import conn
+from app.routes.db import conn
 from flask import Flask
 import json
 from . import bp
 
 app = Flask(__name__)
 @bp.route('/attend', methods=['POST'])
-def security_chart():
+def security_chart1():
     if request.method == 'POST': 
         start_time = request.values['start_time'] 
         end_time = request.values['end_time']
