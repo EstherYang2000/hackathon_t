@@ -1,18 +1,9 @@
-# import psycopg2
-# from simplegmail import Gmail
-# import os
-# import openai
-# import os
-# import base64
-# from google_auth_oauthlib.flow import InstalledAppFlow
-# from googleapiclient.discovery import build
-# from google.oauth2.credentials import Credentials
-# from google.auth.transport.requests import Request
-# import base64
-# from email.message import EmailMessage
-# import google.auth
-# from googleapiclient.discovery import build
-# from googleapiclient.errors import HttpError
+import os
+import base64
+from google_auth_oauthlib.flow import InstalledAppFlow
+from googleapiclient.discovery import build
+import base64
+from googleapiclient.discovery import build
 
 # def connectPostgres():
 #     conn = psycopg2.connect(
@@ -99,35 +90,35 @@
 
 
 
-# # Define the scopes and client ID details
-# SCOPES = ['https://www.googleapis.com/auth/gmail.send']
+# Define the scopes and client ID details
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-# # Create credentials and set up the Gmail API service
-# flow = InstalledAppFlow.from_client_secrets_file('common/client_secret.json', SCOPES)
+# Create credentials and set up the Gmail API service
+flow = InstalledAppFlow.from_client_secrets_file('common/client_secret.json', SCOPES)
+creds = flow.run_local_server(port=0)
+# flow = InstalledAppFlow.from_client_secrets_file(
+#     CLIENT_ID, CLIENT_SECRET, SCOPES)
 # creds = flow.run_local_server(port=0)
-# # flow = InstalledAppFlow.from_client_secrets_file(
-# #     CLIENT_ID, CLIENT_SECRET, SCOPES)
-# # creds = flow.run_local_server(port=0)
-# service = build('gmail', 'v1', credentials=creds)
-# YOUR_EMAIL_ADDRESS = 'estheryangyujie.mg12@nycu.edu.tw'
-# recipient = 'ester6126@gmail.com'
-# # Compose the email
-# # Compose the email
-# email_message = """
-# Subject: Your Subject
-# To: ester6126@gmail.com
-# From: estheryangyujie.mg12@nycu.edu.tw
-# MIME-Version: 1.0
-# Content-type: text/html
-# Content-Transfer-Encoding: 8bit
+service = build('gmail', 'v1', credentials=creds)
+YOUR_EMAIL_ADDRESS = 'estheryangyujie.mg12@nycu.edu.tw'
+recipient = 'ester6126@gmail.com'
+# Compose the email
+# Compose the email
+email_message = """
+Subject: Your Subject
+To: ester6126@gmail.com
+From: estheryangyujie.mg12@nycu.edu.tw
+MIME-Version: 1.0
+Content-type: text/html
+Content-Transfer-Encoding: 8bit
 
-# <html>Test</html>
-# """
+<html>Test</html>
+"""
 
-# # Encode the email message in base64
-# message_bytes = email_message.encode('utf-8')
-# message_base64 = base64.urlsafe_b64encode(message_bytes).decode('utf-8')
+# Encode the email message in base64
+message_bytes = email_message.encode('utf-8')
+message_base64 = base64.urlsafe_b64encode(message_bytes).decode('utf-8')
 
-# # Send the email
-# message = service.users().messages().send(userId='me', body={'raw': message_base64}).execute()
-# print(f"Message Id: {message['id']}")
+# Send the email
+message = service.users().messages().send(userId='me', body={'raw': message_base64}).execute()
+print(f"Message Id: {message['id']}")

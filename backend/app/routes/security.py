@@ -37,8 +37,9 @@ def test():
 @bp.route('/security/dashboard', methods=['POST'])
 def security_dashboard():
     if request.method == 'POST': 
-        start_time = request.values['start_time'] 
-        end_time = request.values['end_time'] 
+        data = request.get_json()
+        start_time = data['start_time'] 
+        end_time = data['end_time'] 
 
     with conn.cursor() as cur:
         sql = """
@@ -66,8 +67,9 @@ def security_dashboard():
 @bp.route('/security/chart', methods=['POST'])
 def security_chart():
     if request.method == 'POST': 
-        start_time = request.values['start_time'] 
-        end_time = request.values['end_time'] 
+        data = request.get_json()
+        start_time = data['start_time'] 
+        end_time = data['end_time'] 
 
     with conn.cursor() as cur:
         return_dict = { str(cate): ["0" for weekday in range(1, 8)] for cate in range(1, 6)}
