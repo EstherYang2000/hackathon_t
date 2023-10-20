@@ -3,7 +3,7 @@ from flask import Response
 # from common import my_logging
 from flask import request,jsonify
 import psycopg2
-import pandas as pd
+# import pandas as pd
 from app.routes.db import conn
 from . import bp
 
@@ -17,22 +17,22 @@ from . import bp
 
 from flask import Flask
 
-@bp.route("/")
-def hello():
-    return "Hello, World!"
+# @bp.route("/")
+# def hello():
+#     return "Hello, World!"
 
-@bp.route('/test', methods=['POST','GET'])
-def test():
-    with conn.cursor() as cur:
-        sql = "SELECT * FROM empolyee_entry"
-        cur.execute(sql)
+# @bp.route('/test', methods=['POST','GET'])
+# def test():
+#     with conn.cursor() as cur:
+#         sql = "SELECT * FROM empolyee_entry"
+#         cur.execute(sql)
 
-        name = [desc[0] for desc in cur.description]
+#         name = [desc[0] for desc in cur.description]
         
-        ## 取得資料
-        rows = pd.DataFrame(cur.fetchall(),columns=name)
+#         ## 取得資料
+#         rows = pd.DataFrame(cur.fetchall(),columns=name)
         
-    return name
+#     return name
 
 @bp.route('/security/dashboard', methods=['POST'])
 def security_dashboard():

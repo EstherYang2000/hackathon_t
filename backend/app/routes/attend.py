@@ -2,7 +2,6 @@ from flask import Response
 # from common import my_logging
 from flask import request,jsonify
 import psycopg2
-import pandas as pd
 from app.routes.db import conn
 from flask import Flask
 import json
