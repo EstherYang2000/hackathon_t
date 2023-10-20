@@ -26,10 +26,10 @@ RUN apt-get update \
   && apt-get clean
 
 # add and install requirements
-COPY ./requirements_v1.txt .
+COPY ./requirements.txt .
 RUN pwd && ls -l
 RUN pip install --upgrade pip
-RUN pip install -r requirements_v1.txt
+RUN pip install -r requirements.txt
 
 # add entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh

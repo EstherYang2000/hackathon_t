@@ -47,10 +47,8 @@ def hrDashboard():
         sql2 = ""
         dailyAttendence_list = []
         weeklyLate_list = []
-        zone = tuple(zone)
+
         if zone != "ALL": 
-            zone = 
-        else:   
             
             # SQL query with placeholders
             sql1 = """

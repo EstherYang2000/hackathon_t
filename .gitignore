@@ -166,3 +166,6 @@ frontend/node_modules/*
 
 backend/common/client_secret.json
 backend/requirements.txt
+
+# venv
+tsmc

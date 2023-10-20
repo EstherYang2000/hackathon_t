@@ -1,18 +1,18 @@
-import psycopg2
-from simplegmail import Gmail
-import os
-import openai
-import os
-import base64
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-import base64
-from email.message import EmailMessage
-import google.auth
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+# import psycopg2
+# from simplegmail import Gmail
+# import os
+# import openai
+# import os
+# import base64
+# from google_auth_oauthlib.flow import InstalledAppFlow
+# from googleapiclient.discovery import build
+# from google.oauth2.credentials import Credentials
+# from google.auth.transport.requests import Request
+# import base64
+# from email.message import EmailMessage
+# import google.auth
+# from googleapiclient.discovery import build
+# from googleapiclient.errors import HttpError
 
 # def connectPostgres():
 #     conn = psycopg2.connect(
