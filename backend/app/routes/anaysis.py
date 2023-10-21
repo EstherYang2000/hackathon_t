@@ -31,6 +31,7 @@ def analysis_xray():
                 for row in data:
                     result_dicts[z+"_real"].append({"scanTime": float(row[1]), "dateTime": str(row[0])})
 
+                
                 data = pd.read_csv(os.path.join("app/routes/model_output/{}_ScanTime_Pred.csv".format(z)))
                 data.columns = ["date", "y_pred"]
 
@@ -39,7 +40,12 @@ def analysis_xray():
                     date_obj = datetime.strptime(date_str, '%Y-%m-%d')
                     formatted_date = date_obj.strftime('%Y-%m-%d %H:%M:%S')
                     result_dicts[z+"_predict"].append({"scanTime": data.iloc[i]["y_pred"], "dateTime": formatted_date})
-                # print(data.iloc[0]["date"])
+                
+                data = pd.read_csv(os.path.join("app/routes/model_output/{}_ScanTime_Real.csv".format(z)))
+                for i in range(len(data)):
+                    date_str = data.iloc[i]["Date"]
+                    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+                    formatted_date = date_obj.strftime('%Y-%m-%d %H:%M:%S')
+                    result_dicts[z+"_real"].append({"scanTime": data.iloc[i]["ToolScanTime"], "dateTime": formatted_date})
                 
         return result_dicts
-
