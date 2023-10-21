@@ -162,8 +162,11 @@ backend/hackthon/*
 backend/logs/*
 frontend/node_modules/*
 
-#api key
+# yolo things
+backend/runs/*
+*.pt
 
+#api key
 backend/common/client_secret.json
 backend/requirements.txt
 
@@ -171,3 +174,4 @@ backend/requirements.txt
 tsmc
 
 postgres-data/
+
