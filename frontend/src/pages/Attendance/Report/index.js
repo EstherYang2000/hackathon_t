@@ -59,13 +59,22 @@ const zoneOptions = [
   },
 ];
 
-const SearchForm = (props) => {
-  const [selectedStartDate, setSelectedStartDate] = useState("2023-09-10");
-  const [selectedEndDate, setSelectedEndDate] = useState("2023-09-16");
+const weekOptions = [
+  {
+    value: "2023-09-10 ~ 2023-09-17",
+    label: "2023-09-10 ~ 2023-09-17",
+  },
+  {
+    value: "2023-09-18 ~ 2023-09-24",
+    label: "2023-09-18 ~ 2023-09-24",
+  },
+];
 
+const SearchForm = (props) => {
   const form = Form.useFormInstance();
 
   const handleSearchClick = () => {
+    const data = form.getFieldValue("dateRange").split(" ~ ");
     const dept = {
       label: form.getFieldValue("dept"),
       value: form.getFieldValue("dept"),
@@ -74,27 +83,18 @@ const SearchForm = (props) => {
       label: form.getFieldValue("zone"),
       value: form.getFieldValue("zone"),
     };
-    props.search(selectedStartDate, selectedEndDate, zone, dept);
-  };
-
-  const dateOnChange = (dates, dateString) => {
-    const date_arr = dateString.split(" ~ ");
-    if (date_arr.length === 2) {
-      setSelectedStartDate(date_arr[0]);
-      setSelectedEndDate(date_arr[1]);
-    }
+    props.search(data[0], data[1], zone, dept);
   };
 
   return (
     <div style={{ display: "contents" }}>
-      <Form.Item
-        name="dateRange"
-        initialValue={dayjs(selectedStartDate, "YYYY-MM-DD")}
-      >
-        <DatePicker
-          picker="week"
-          format={customWeekStartEndFormat}
-          onChange={dateOnChange}
+      <Form.Item name="dateRange" initialValue={weekOptions[0].label}>
+        <Select
+          placeholder="Please select"
+          style={{
+            width: "100%",
+          }}
+          options={weekOptions}
         />
       </Form.Item>
       <Form.Item name="dept" initialValue={deptOptions[0].label}>
@@ -103,14 +103,11 @@ const SearchForm = (props) => {
       <Form.Item name="zone" initialValue={zoneOptions[0].label}>
         <Select placeholder="Please select" options={zoneOptions} />
       </Form.Item>
-
-      {/* <div style={{ display: "flex", marginLeft: "auto" }}> */}
       <Form.Item name="search">
         <Button type="primary" onClick={() => handleSearchClick()}>
           查詢
         </Button>
       </Form.Item>
-      {/* </div> */}
     </div>
   );
 };
@@ -141,27 +138,127 @@ const weekDayList = ["星期一", "星期二", "星期三", "星期四", "星期
 
 const AttendanceReport = () => {
   const [loading, setLoading] = useState(true);
-  const [entryStat, setEntryStat] = useState();
-  const [lateDeptHis, setLateDeptHis] = useState();
-  const [weeklyZoneLateHis, setWeeklyZoneLateHis] = useState();
-
   const [LLMLoading, setLLMLoading] = useState(true);
-  const [HQResponse, setHQResponse] = useState({});
-  const [AZResponse, setAZResponse] = useState({});
-  const [tabItem, setTabItem] = useState([
-    {
-      key: "1",
-      label: "中文",
-    },
-    {
-      key: "2",
-      label: "English",
-    },
-    {
-      key: "3",
-      label: "日本語",
-    },
-  ]);
+
+  const [entryStat, setEntryStat] = useState([]);
+  const [lateDeptHis, setLateDeptHis] = useState([]);
+  const [weeklyZoneLateHis, setWeeklyZoneLateHis] = useState([]);
+
+  const [empshiftChartTabItem, setEmpshiftChartTabItem] = useState();
+  const [weeklyChartTabItem, setWeeklyChartTabItem] = useState();
+  const [tableTabItem, setTableTabItem] = useState();
+
+  const setTabItem = (res) => {
+    setEmpshiftChartTabItem([
+      {
+        key: "1",
+        label: "中文",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateDeptCount[0].HQ.zh.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "2",
+        label: "English",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateDeptCount[0].HQ.en.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "3",
+        label: "日本語",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateDeptCount[0].HQ.jp.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+    ]);
+
+    // weeklyZoneLateCount
+    setWeeklyChartTabItem([
+      {
+        key: "1",
+        label: "中文",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.weeklyZoneLateCount[0].HQ.zh.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "2",
+        label: "English",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.weeklyZoneLateCount[0].HQ.en.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "3",
+        label: "日本語",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.weeklyZoneLateCount[0].HQ.jp.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+    ]);
+
+    // lateTable 表格
+    setTableTabItem([
+      {
+        key: "1",
+        label: "中文",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateTable[0].HQ.zh.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "2",
+        label: "English",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateTable[0].HQ.en.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+      {
+        key: "3",
+        label: "日本語",
+        children: (
+          <div
+            dangerouslySetInnerHTML={{
+              __html: res.lateTable[0].HQ.jp.replace(/\n/g, "<br/>"),
+            }}
+          ></div>
+        ),
+      },
+    ]);
+  };
 
   const search = (start_date, end_date, zone, dept) => {
     const rq = {
@@ -170,6 +267,7 @@ const AttendanceReport = () => {
       dept: dept.label,
       zone: zone.label,
     };
+    console.log(rq);
     api
       .post("hr/weeklyreport", rq)
       .then((res) => {
@@ -181,9 +279,9 @@ const AttendanceReport = () => {
       .catch((error) => {
         setEntryStat([]);
       });
-
     // TODO - change mock to call api
     mock.fetchAttendanceLLMResult(rq).then((res) => {
+      setTabItem(res);
       setLLMLoading(false);
     });
   };
@@ -192,8 +290,8 @@ const AttendanceReport = () => {
     const rq = {
       zone: "ALL",
       dept: "DEPT1",
-      start_date: "2023-09-10",
-      end_date: "2023-09-16",
+      start_date: "2023-09-11",
+      end_date: "2023-09-17",
     };
 
     api
@@ -210,26 +308,7 @@ const AttendanceReport = () => {
 
     // TODO - change mock to call api
     mock.fetchAttendanceLLMResult(rq).then((res) => {
-      const llmtext = res["llmtext"];
-      if (llmtext.length === 2) {
-        setTabItem([
-          {
-            key: "1",
-            label: "中文",
-            children: llmtext[0].HQ.result.zh,
-          },
-          {
-            key: "2",
-            label: "English",
-          },
-          {
-            key: "3",
-            label: "日本語",
-          },
-        ]);
-      } else {
-      }
-
+      setTabItem(res);
       setLLMLoading(false);
     });
   }, []);
@@ -242,59 +321,77 @@ const AttendanceReport = () => {
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Card>
-            {LLMLoading ? (
-              <Spin />
-            ) : (
-              <Tabs defaultActiveKey="1" items={tabItem} />
-            )}
+            <Row>
+              <Col span={12}>
+                {lateDeptHis.length === 0 ? (
+                  <p>Loading...</p>
+                ) : (
+                  <Chart
+                    type="bar"
+                    width="100%"
+                    options={getBarChartOptions(empShiftList)}
+                    series={chartFormatter.groupZone(lateDeptHis, "late_count")}
+                  />
+                )}
+              </Col>
+              <Col span={12}>
+                {LLMLoading ? (
+                  <p>LLM Loading...</p>
+                ) : (
+                  <Tabs defaultActiveKey="1" items={empshiftChartTabItem} />
+                )}
+              </Col>
+            </Row>
           </Card>
         </Col>
-
-        {loading ? (
-          <p>loading</p>
-        ) : (
-          <Col span={12}>
-            <Card>
-              {lateDeptHis.length === 0 ? (
-                <p>無資料</p>
-              ) : (
-                <Chart
-                  type="bar"
-                  width="100%"
-                  options={getBarChartOptions(empShiftList)}
-                  series={chartFormatter.groupZone(lateDeptHis, "late_count")}
+        <Col span={24}>
+          <Card>
+            <Row>
+              <Col span={12}>
+                {weeklyZoneLateHis.length === 0 ? (
+                  <p>Loading...</p>
+                ) : (
+                  <Chart
+                    type="bar"
+                    width="100%"
+                    options={getBarChartOptions(weekDayList)}
+                    series={chartFormatter.groupZone(
+                      weeklyZoneLateHis,
+                      "late_count"
+                    )}
+                  />
+                )}
+              </Col>
+              <Col span={12}>
+                {LLMLoading ? (
+                  <p>LLM Loading...</p>
+                ) : (
+                  <Tabs defaultActiveKey="1" items={weeklyChartTabItem} />
+                )}
+              </Col>
+            </Row>
+          </Card>
+        </Col>
+        <Col span={24}>
+          <Card>
+            <Row>
+              <Col span={12}>
+                <Table
+                  dataSource={entryStat}
+                  columns={columns}
+                  loading={loading}
+                  rowKey="entry_id"
                 />
-              )}
-            </Card>
-            <Card>
-              {weeklyZoneLateHis.length === 0 ? (
-                <p>無資料</p>
-              ) : (
-                <Chart
-                  type="bar"
-                  width="100%"
-                  options={getBarChartOptions(weekDayList)}
-                  series={chartFormatter.groupZone(
-                    weeklyZoneLateHis,
-                    "late_count"
-                  )}
-                />
-              )}
-            </Card>
-          </Col>
-        )}
-
-        <Col span={12}>
-          {loading ? (
-            <p></p>
-          ) : (
-            <Table
-              dataSource={entryStat}
-              columns={columns}
-              loading={loading}
-              rowKey="entry_id"
-            />
-          )}
+              </Col>
+              <Col span={12}>
+                {LLMLoading ? (
+                  <p>LLM Loading...</p>
+                ) : (
+                  <Tabs defaultActiveKey="1" items={tableTabItem} />
+                )}
+              </Col>
+            </Row>
+          </Card>
         </Col>
       </Row>
     </div>
