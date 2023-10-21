@@ -1,16 +1,16 @@
 FROM python:3.11.4-buster
 
 # mssql
-ENV ACCEPT_EULA=Y
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-  && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update \
-  && apt-get install -y --no-install-recommends --allow-unauthenticated msodbcsql17 mssql-tools \
-  && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
-  && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
+# ENV ACCEPT_EULA=Y
+# RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+#   && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+#   && apt-get update \
+#   && apt-get install -y --no-install-recommends --allow-unauthenticated msodbcsql17 mssql-tools \
+#   && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bash_profile \
+#   && echo 'export PATH="$PATH:/opt/mssql-tools/bin"' >> ~/.bashrc
 
-RUN apt-get update -y && apt-get update \
-  && apt-get install -y --no-install-recommends curl gcc g++ gnupg unixodbc-dev apt-utils
+# RUN apt-get update -y && apt-get update \
+#   && apt-get install -y --no-install-recommends curl gcc g++ gnupg unixodbc-dev apt-utils
 
 
 # set working directory
@@ -30,6 +30,10 @@ COPY ./requirements.txt .
 RUN pwd && ls -l
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
+RUN pip install psycopg2
+RUN pip install psycopg2-binary
+RUN apt-get install -y python-psycopg2
+
 
 # add entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh

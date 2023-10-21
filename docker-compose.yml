@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    entrypoint: ["sh", "/usr/src/app/entrypoint.sh"]
+    entrypoint: ["sh","/usr/src/app/entrypoint.sh"]
     volumes:
       - "./backend:/usr/src/app"
     ports:
@@ -25,3 +25,24 @@ services:
       - REACT_APP_BACKEND_SERVICE_URL=http://localhost:5004
     depends_on:
       - backend
+  # databases:
+  #   container_name: postgres_hacker
+  #   image: postgres:15
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - ./postgres-data:/var/lib/postgresql/data
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: hacker
+  #     POSTGRES_PASSWORD: root
+  #     POSTGRES_DB: hacker_TG
+  # pgadmin:
+  #   container_name : pgadmin4_container
+  #   image: dpage/pgadmin4
+  #   restart: always
+  #   environment:
+  #     PGADMIN_DEFAULT_EMAIL: ester6126@gmail.com
+  #     PGADMIN_DEFAULT_PASSWORD: hacker123
+  #   ports:
+  #     - "5050:80"
