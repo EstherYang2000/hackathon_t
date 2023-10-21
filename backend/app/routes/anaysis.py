@@ -23,7 +23,7 @@ def analysis_xray():
             cursor = conn.cursor()
             with conn.cursor() as cur:
                 sql = """SELECT datetime, toolscantime
-                FROM public.empolyee_entry
+                FROM public.entry_scan
                 WHERE zone = '{}'
                 ORDER BY datetime""".format(z)
                 cur.execute(sql)
