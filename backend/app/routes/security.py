@@ -8,6 +8,7 @@ from app.routes.db import conn
 from . import bp
 from flask import Flask
 from .llm import LLM
+import json
 
 
 @bp.route('/security/dashboard', methods=['POST'])
@@ -70,3 +71,11 @@ def search_security_chart(start_time, end_time):
                 return_dict[str(cat_idx+1)][weekday-1] = count[cat_idx]
         return return_dict
     
+@bp.route("/security/weeklyreport", methods=['POST'])
+def output_weekly_report():
+    if request.method == 'POST': 
+        data = request.get_json()
+        week_cnt = data['week_cnt'] 
+        with open('app/routes/output-security-report.json') as json_file:
+            report = json.load(json_file)
+            return {'barchart' : report['barchart'][str(week_cnt)], 'linechart':report['barchart'][str(week_cnt)]}
