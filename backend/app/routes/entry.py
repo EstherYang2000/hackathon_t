@@ -610,7 +610,7 @@ def llmRealtime():
         input = data['input'] 
         if conversation_id == "0":
             data = readHRDashboard(zone,start_date,end_date)
-            prompt = "以下請用繁體中文寫 zone代表工作的廠區 empshift是員工的應到班表時段 late_count是統計這週這部門底下這廠區這應到班表的遲到人數"
+            prompt = "以下資料欄位描述 zone代表工作的廠區 empshift是員工的應到班表時段 late_count是統計這週這部門底下這廠區這應到班表的遲到人數 entry_count是員工這週出勤的天數 late_count是員工這週遲到的天數 normal_count是員工沒有遲到的天數"
             prompt += str(data)
             print(prompt)
             response, conversation_id = LLM(prompt, conversation_id="0")
