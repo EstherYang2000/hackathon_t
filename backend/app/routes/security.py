@@ -6,33 +6,8 @@ import psycopg2
 # import pandas as pd
 from app.routes.db import conn
 from . import bp
-
-# conn = psycopg2.connect(
-#     host="127.0.0.1",  # Use the container name #172.20.0.4
-#     database="hacker_TG",
-#     user="postgres",
-#     password="root",
-#     port = "5432"
-#     )
-
 from flask import Flask
 
-# @bp.route("/")
-# def hello():
-#     return "Hello, World!"
-
-# @bp.route('/test', methods=['POST','GET'])
-# def test():
-#     with conn.cursor() as cur:
-#         sql = "SELECT * FROM empolyee_entry"
-#         cur.execute(sql)
-
-#         name = [desc[0] for desc in cur.description]
-        
-#         ## 取得資料
-#         rows = pd.DataFrame(cur.fetchall(),columns=name)
-        
-#     return name
 
 @bp.route('/security/dashboard', methods=['POST'])
 def security_dashboard():
@@ -40,6 +15,9 @@ def security_dashboard():
         data = request.get_json()
         start_time = data['start_time'] 
         end_time = data['end_time'] 
+    return(search_security_dashboard(start_time, end_time))
+
+def search_security_dashboard(start_time, end_time):
 
     with conn.cursor() as cur:
         sql = """
@@ -71,6 +49,9 @@ def security_chart():
         start_time = data['start_time'] 
         end_time = data['end_time'] 
 
+        return search_security_chart(start_time, end_time)
+
+def search_security_chart(start_time, end_time):
     with conn.cursor() as cur:
         return_dict = { str(cate): ["0" for weekday in range(1, 8)] for cate in range(1, 6)}
         for weekday in range(1, 8):
@@ -87,3 +68,4 @@ def security_chart():
             for cat_idx in range(len(count)):
                 return_dict[str(cat_idx+1)][weekday-1] = count[cat_idx]
         return return_dict
+    
