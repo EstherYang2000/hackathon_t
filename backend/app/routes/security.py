@@ -77,4 +77,4 @@ def output_weekly_report():
         week_cnt = data['week_cnt'] 
         with open('app/routes/output-security-report.json') as json_file:
             report = json.load(json_file)
-            return {'barchart' : report['barchart'][str(week_cnt)], 'linechart':report['barchart'][str(week_cnt)]}
+            return {'barchart' : report['barchart'][str(week_cnt)], 'linechart':report['linechart'][str(week_cnt)]}

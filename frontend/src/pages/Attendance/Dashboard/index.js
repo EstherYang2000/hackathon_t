@@ -4,7 +4,6 @@ import { Col, Row, Card, Statistic, Segmented, DatePicker } from "antd";
 import dayjs from "dayjs";
 import Chart from "react-apexcharts";
 import chartFormatter from "../../../utils/chartFormatter";
-import mock from "../../../utils/mock";
 import api from "../../../utils/api";
 import getLineChartOptions from "../../../components/chart/LineChartOptions";
 

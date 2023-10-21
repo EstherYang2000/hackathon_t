@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Col, Row, Table, Card } from "antd";
 import ReactApexChart from "react-apexcharts";
 import areaChartOptions from "../../../components/chart/AreaChartOptions";
-import mock from "../../../utils/mock";
 import api from "../../../utils/api";
 
 // Table
@@ -53,7 +52,6 @@ const Maintain = () => {
 
   useEffect(() => {
     var url = "analysis";
-    const tableZone = ["AZ_real", "HQ_real"];
 
     const tableData = [];
     api
@@ -97,7 +95,7 @@ const Maintain = () => {
               options={areaChartOptions}
               series={processData(scanHis)}
               type="area"
-              height="300px"
+              height="500px"
               width="100%"
             />
           </Col>

@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, DatePicker, Select, Table, Card, Button } from "antd";
+import {
+  Row,
+  Col,
+  Form,
+  DatePicker,
+  Select,
+  Table,
+  Card,
+  Button,
+  Spin,
+  Tabs,
+} from "antd";
 import dayjs from "dayjs";
-import moment from "moment";
-
 import Chart from "react-apexcharts";
-import mock from "../../../utils/mock";
 import getBarChartOptions from "../../../components/chart/BarChartOptions";
 import chartFormatter from "../../../utils/chartFormatter";
+import mock from "../../../utils/mock";
 import api from "../../../utils/api";
 
 // Search Bar
@@ -131,12 +140,28 @@ const empShiftList = ["6:30", "7:30", "8:30", "9:00", "9:30"];
 const weekDayList = ["星期一", "星期二", "星期三", "星期四", "星期五"];
 
 const AttendanceReport = () => {
-  const [noData, setNoData] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [entryStat, setEntryStat] = useState();
   const [lateDeptHis, setLateDeptHis] = useState();
   const [weeklyZoneLateHis, setWeeklyZoneLateHis] = useState();
+
+  const [LLMLoading, setLLMLoading] = useState(true);
+  const [HQResponse, setHQResponse] = useState({});
+  const [AZResponse, setAZResponse] = useState({});
+  const [tabItem, setTabItem] = useState([
+    {
+      key: "1",
+      label: "中文",
+    },
+    {
+      key: "2",
+      label: "English",
+    },
+    {
+      key: "3",
+      label: "日本語",
+    },
+  ]);
 
   const search = (start_date, end_date, zone, dept) => {
     const rq = {
@@ -155,8 +180,12 @@ const AttendanceReport = () => {
       })
       .catch((error) => {
         setEntryStat([]);
-        // setLoading(false);
       });
+
+    // TODO - change mock to call api
+    mock.fetchAttendanceLLMResult(rq).then((res) => {
+      setLLMLoading(false);
+    });
   };
 
   useEffect(() => {
@@ -177,8 +206,32 @@ const AttendanceReport = () => {
       })
       .catch((error) => {
         setEntryStat([]);
-        // setLoading(true);
       });
+
+    // TODO - change mock to call api
+    mock.fetchAttendanceLLMResult(rq).then((res) => {
+      const llmtext = res["llmtext"];
+      if (llmtext.length === 2) {
+        setTabItem([
+          {
+            key: "1",
+            label: "中文",
+            children: llmtext[0].HQ.result.zh,
+          },
+          {
+            key: "2",
+            label: "English",
+          },
+          {
+            key: "3",
+            label: "日本語",
+          },
+        ]);
+      } else {
+      }
+
+      setLLMLoading(false);
+    });
   }, []);
 
   return (
@@ -188,7 +241,13 @@ const AttendanceReport = () => {
       </Form>
       <Row gutter={[16, 16]}>
         <Col span={24}>
-          <Card>週報說...</Card>
+          <Card>
+            {LLMLoading ? (
+              <Spin />
+            ) : (
+              <Tabs defaultActiveKey="1" items={tabItem} />
+            )}
+          </Card>
         </Col>
 
         {loading ? (

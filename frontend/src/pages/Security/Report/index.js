@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Row, Col, Form, DatePicker, Card } from "antd";
+import { Row, Col, Form, Tabs, Card, Select } from "antd";
 import dayjs from "dayjs";
 import Chart from "react-apexcharts";
 import mock from "../../../utils/mock";
@@ -21,12 +21,22 @@ const customWeekStartEndFormat = (value) =>
 
 const itemList = ["電子設備", "筆記型電腦", "剪刀", "刀", "槍枝"];
 
+const weekOptions = [
+  {
+    value: "1",
+    label: "2023-09-10 ~ 2023-09-16",
+  },
+  {
+    value: "2",
+    label: "2023-09-18 ~ 2023-09-24",
+  },
+];
+
 const SecurityReport = () => {
   const [noData, setNoData] = useState(true);
-
   const [selectedStartDate, setSelectedStartDate] = useState("2023-09-10");
   const [selectedEndDate, setSelectedEndDate] = useState("2023-09-16");
-
+  const [selectedWeek, setSelectedWeek] = useState("1");
   const [contrabandHis, setContrabandHis] = useState();
   const [contrabandHisItems, setContrabandHisItems] = useState([
     null,
@@ -36,12 +46,14 @@ const SecurityReport = () => {
     null,
   ]);
 
-  const dateOnChange = (dates, dateString) => {
-    const date_arr = dateString.split(" ~ ");
-    if (date_arr.length === 2) {
-      setSelectedStartDate(date_arr[0]);
-      setSelectedEndDate(date_arr[1]);
-    }
+  const [lineChartTabItem, setLineChartTabItem] = useState([]);
+  const [barChartTabItem, setBarChartTabItem] = useState([]);
+
+  const dateOnChange = (value) => {
+    const date_arr = weekOptions[parseInt(value) - 1].label.split(" ~ ");
+    setSelectedWeek(value);
+    setSelectedStartDate(date_arr[0]);
+    setSelectedEndDate(date_arr[1]);
   };
 
   useEffect(() => {
@@ -91,52 +103,138 @@ const SecurityReport = () => {
       .catch((error) => {
         setNoData(true);
       });
-  }, [selectedStartDate]);
+
+    mock.fetchSecurityLLMResult(selectedWeek).then((res) => {
+      setLineChartTabItem([
+        {
+          key: "1",
+          label: "中文",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.linechart.zh.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+        {
+          key: "2",
+          label: "English",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.linechart.en.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+        {
+          key: "3",
+          label: "日本語",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.linechart.jp.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+      ]);
+
+      setBarChartTabItem([
+        {
+          key: "1",
+          label: "中文",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.barchart.zh.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+        {
+          key: "2",
+          label: "English",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.barchart.en.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+        {
+          key: "3",
+          label: "日本語",
+          children: (
+            <div
+              dangerouslySetInnerHTML={{
+                __html: res.barchart.jp.replace(/\n/g, "<br/>"),
+              }}
+            ></div>
+          ),
+        },
+      ]);
+    });
+  }, [selectedWeek]);
 
   return (
     <div style={{ padding: "16px 16px" }}>
-      <Form layout="inline" style={{ padding: "0 0 16px 0" }}>
-        <DatePicker
-          picker="week"
-          format={customWeekStartEndFormat}
-          onChange={dateOnChange}
-          defaultValue={dayjs(selectedStartDate, weekFormat)}
-        />
-      </Form>
+      <Select
+        placeholder="Please select"
+        style={{
+          width: "100%",
+        }}
+        options={weekOptions}
+        onChange={dateOnChange}
+        defaultValue={weekOptions[0]}
+      />
       {noData ? (
         <p>無資料</p>
       ) : (
         <Row gutter={[16, 16]}>
-          <Col span={24}>
-            <Card>週報說...</Card>
-          </Col>
-          <Col span={15}>
-            <Card>
-              <Chart
-                type="bar"
-                width="100%"
-                options={getBarChartOptions(weekDayList)}
-                series={contrabandHis}
-              />
-            </Card>
-          </Col>
-          <Col span={9}>
-            {contrabandHisItems.map((item) => (
-              <Col span={24} key={item.name}>
-                <Card>
-                  <Chart
-                    type="line"
-                    width="100%"
-                    options={getLineChartOptions(weekDayList, item.name)}
-                    series={item.series}
-                  />
-                </Card>
+          <Card>
+            <Row gutter={[16, 16]}>
+              <Col span={12}>
+                <Chart
+                  type="bar"
+                  width="100%"
+                  options={getBarChartOptions(weekDayList)}
+                  series={contrabandHis}
+                />
               </Col>
-            ))}
-          </Col>
+              <Col span={12}>
+                <Tabs defaultActiveKey="1" items={barChartTabItem} />
+              </Col>
+            </Row>
+          </Card>
+
+          <Card>
+            <Row gutter={[16, 16]}>
+              <Col span={9}>
+                <Col span={24}>
+                  <Tabs defaultActiveKey="1" items={lineChartTabItem}></Tabs>
+                </Col>
+              </Col>
+              <Col span={15}>
+                <Row>
+                  {contrabandHisItems.map((item) => (
+                    <Col span={12} key={item.name}>
+                      <Chart
+                        type="line"
+                        width="100%"
+                        options={getLineChartOptions(weekDayList, item.name)}
+                        series={item.series}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+              </Col>
+            </Row>
+          </Card>
         </Row>
       )}
-      <Row gutter={[16, 16]}></Row>
     </div>
   );
 };

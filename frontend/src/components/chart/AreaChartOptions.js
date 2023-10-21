@@ -8,7 +8,7 @@ const areaChartOptions = {
     },
   },
   legend: {
-    show: false,
+    show: true,
   },
   dataLabels: {
     enabled: false,
@@ -24,7 +24,7 @@ const areaChartOptions = {
       },
       offsetX: 0,
       formatter: function (val) {
-        return val;
+        return Math.round(val * 100) / 100;
       },
     },
     axisBorder: {
@@ -33,6 +33,7 @@ const areaChartOptions = {
     axisTicks: {
       show: false,
     },
+    min: 0,
   },
   xaxis: {
     type: "datetime",
@@ -43,7 +44,7 @@ const areaChartOptions = {
       },
     },
     min: new Date("12/01/2022").getTime(),
-    max: new Date("09/22/2023").getTime(),
+    max: new Date("12/20/2023").getTime(),
   },
   annotations: {
     yaxis: [
