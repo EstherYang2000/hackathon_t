@@ -1,7 +1,4 @@
 const API_URL = "http://127.0.0.1:5000/";
-
-// const API_URL = "/Users/Emico/Desktop/hackathon_t/frontend/src/utils/data/";
-
 const apiFetch = (url, method = "GET", data = {}) => {
   console.log(API_URL + url);
   const options = {
@@ -21,19 +18,9 @@ const apiFetch = (url, method = "GET", data = {}) => {
     options.body = JSON.stringify(data);
   }
 
-  return fetch(url, options)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
-      }
-      return res.status !== 204 ? res.json() : {}; // deal with 204 return empty
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-      // 可以選擇拋出一個新錯誤，或者回傳一個預設值
-      // return "error";
-      throw error; // 或者回傳一個預設值，例如：return {};
-    });
+  return fetch(url, options).then((res) => {
+    return res.status !== 204 ? res.json() : {}; // deal with 204 return empty
+  });
 };
 
 // ajax get method

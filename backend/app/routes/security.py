@@ -79,7 +79,7 @@ def output_weekly_report():
         with open('app/routes/output-security-report.json') as json_file:
             report = json.load(json_file)
             return {'barchart' : report['barchart'][str(week_cnt)], 'linechart':report['linechart'][str(week_cnt)]}
-     
+
 @bp.route("/security/chart/llmrealtime", methods=['POST'])
 def sec_llmRealtime():
     if request.method == 'POST': 
