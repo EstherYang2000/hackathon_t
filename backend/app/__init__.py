@@ -20,7 +20,7 @@ def create_app(config_class=None):
 
     # if we want use react build result
     # add static_folder='../frontend/build', static_url_path='' to Flask
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../static', static_url_path='/static')
 
 
     # if we want to seperate frontend & backend
