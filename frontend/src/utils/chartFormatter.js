@@ -1,8 +1,8 @@
-const countData = (dataList) => {
+const countData = (dataList, count_label) => {
   if ((dataList === undefined) | !Array.isArray(dataList)) {
     return [];
   }
-  const data = dataList.map((item) => item.Count);
+  const data = dataList.map((item) => item[count_label]);
   return [
     {
       name: "總數",
@@ -11,15 +11,15 @@ const countData = (dataList) => {
   ];
 };
 
-const groupZone = (dataList) => {
+const groupZone = (dataList, count_label) => {
   if (dataList === undefined) {
     return [];
   }
   const groupedData = dataList.reduce((acc, item) => {
-    if (!acc[item.Zone]) {
-      acc[item.Zone] = [];
+    if (!acc[item.zone]) {
+      acc[item.zone] = [];
     }
-    acc[item.Zone].push(item.Count);
+    acc[item.zone].push(item[count_label]);
     return acc;
   }, {});
 

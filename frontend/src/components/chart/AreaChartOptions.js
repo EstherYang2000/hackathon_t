@@ -34,7 +34,6 @@ const areaChartOptions = {
       show: false,
     },
   },
-
   xaxis: {
     type: "datetime",
     labels: {
@@ -44,7 +43,23 @@ const areaChartOptions = {
       },
     },
     min: new Date("12/01/2022").getTime(),
-    max: new Date("09/10/2023").getTime(),
+    max: new Date("09/22/2023").getTime(),
+  },
+  annotations: {
+    yaxis: [
+      {
+        y: 1.5,
+        borderColor: "#00E396",
+        label: {
+          borderColor: "#00E396",
+          style: {
+            color: "#fff",
+            background: "#00E396",
+          },
+          text: "Threshold = 1.5",
+        },
+      },
+    ],
   },
 };
 

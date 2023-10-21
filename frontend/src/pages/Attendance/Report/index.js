@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { Row, Col, Form, DatePicker, Select, Table, Card, Button } from "antd";
 import dayjs from "dayjs";
+import moment from "moment";
+
 import Chart from "react-apexcharts";
 import mock from "../../../utils/mock";
 import getBarChartOptions from "../../../components/chart/BarChartOptions";
 import chartFormatter from "../../../utils/chartFormatter";
+import api from "../../../utils/api";
+
 // Search Bar
-const weekFormat = "MM/DD";
+const weekFormat = "YYYY-MM-DD";
 const customWeekStartEndFormat = (value) =>
   `${dayjs(value).startOf("week").format(weekFormat)} ~ ${dayjs(value)
     .endOf("week")
     .format(weekFormat)}`;
 
-// TODO - fetch from data
 const deptOptions = [
   {
     label: "DEPT1",
@@ -34,8 +37,8 @@ const deptOptions = [
 
 const zoneOptions = [
   {
-    label: "All",
-    value: "All",
+    label: "ALL",
+    value: "ALL",
   },
   {
     label: "AZ",
@@ -48,32 +51,47 @@ const zoneOptions = [
 ];
 
 const SearchForm = (props) => {
+  const [selectedStartDate, setSelectedStartDate] = useState("2023-09-10");
+  const [selectedEndDate, setSelectedEndDate] = useState("2023-09-16");
+
   const form = Form.useFormInstance();
 
   const handleSearchClick = () => {
-    const dateRange = form.getFieldValue("dateRange");
-    const dept = form.getFieldValue("dept");
-    const zone = form.getFieldValue("zone");
+    const dept = {
+      label: form.getFieldValue("dept"),
+      value: form.getFieldValue("dept"),
+    };
+    const zone = {
+      label: form.getFieldValue("zone"),
+      value: form.getFieldValue("zone"),
+    };
+    props.search(selectedStartDate, selectedEndDate, zone, dept);
+  };
 
-    // TODO - Request
-
-    // TODO - Change zone
-    if (zone === "All") {
-      props.updateViewZone(false);
-    } else {
-      props.updateViewZone(true);
+  const dateOnChange = (dates, dateString) => {
+    const date_arr = dateString.split(" ~ ");
+    if (date_arr.length === 2) {
+      setSelectedStartDate(date_arr[0]);
+      setSelectedEndDate(date_arr[1]);
     }
   };
 
   return (
     <div style={{ display: "contents" }}>
-      <Form.Item name="dateRange" initialValue={dayjs()}>
-        <DatePicker picker="week" format={customWeekStartEndFormat} />
+      <Form.Item
+        name="dateRange"
+        initialValue={dayjs(selectedStartDate, "YYYY-MM-DD")}
+      >
+        <DatePicker
+          picker="week"
+          format={customWeekStartEndFormat}
+          onChange={dateOnChange}
+        />
       </Form.Item>
-      <Form.Item name="dept" initialValue={deptOptions[0]}>
+      <Form.Item name="dept" initialValue={deptOptions[0].label}>
         <Select placeholder="Please select" options={deptOptions} />
       </Form.Item>
-      <Form.Item name="zone" initialValue={zoneOptions[0]}>
+      <Form.Item name="zone" initialValue={zoneOptions[0].label}>
         <Select placeholder="Please select" options={zoneOptions} />
       </Form.Item>
 
@@ -92,102 +110,132 @@ const SearchForm = (props) => {
 const columns = [
   {
     title: "員工編號",
-    dataIndex: "EmpId",
+    dataIndex: "empid",
+  },
+  {
+    title: "廠區",
+    dataIndex: "zone",
   },
   {
     title: "入場天數",
-    dataIndex: "entryCount",
+    dataIndex: "entry_count",
   },
   {
     title: "遲到天數",
-    dataIndex: "lateCount",
+    dataIndex: "late_count",
   },
 ];
 
 // Chart
-const empShiftList = ["6:30", "7:30", "8:30"];
+const empShiftList = ["6:30", "7:30", "8:30", "9:00", "9:30"];
 const weekDayList = ["星期一", "星期二", "星期三", "星期四", "星期五"];
 
 const AttendanceReport = () => {
+  const [noData, setNoData] = useState(false);
+
   const [loading, setLoading] = useState(true);
-  const [viewByZone, setViewByZone] = useState(false);
   const [entryStat, setEntryStat] = useState();
-  const [deptEntryHis, setDeptEntryHis] = useState();
-  const [weekDeptEntryHis, setWeekDeptEntryHis] = useState();
+  const [lateDeptHis, setLateDeptHis] = useState();
+  const [weeklyZoneLateHis, setWeeklyZoneLateHis] = useState();
 
-  const updateViewZone = (viewByZone) => {
-    setViewByZone(viewByZone);
-
-    // TODO - fetch new data
+  const search = (start_date, end_date, zone, dept) => {
+    const rq = {
+      start_date: start_date,
+      end_date: end_date,
+      dept: dept.label,
+      zone: zone.label,
+    };
+    api
+      .post("hr/weeklyreport", rq)
+      .then((res) => {
+        setEntryStat(res["lateTable"]);
+        setLateDeptHis(res["lateDeptCount"]);
+        setWeeklyZoneLateHis(res["weeklyZoneLateCount"]);
+        setLoading(false);
+      })
+      .catch((error) => {
+        setEntryStat([]);
+        // setLoading(false);
+      });
   };
 
   useEffect(() => {
-    mock.fetchEntryStatis().then((res) => {
-      setEntryStat(res);
-    });
+    const rq = {
+      zone: "ALL",
+      dept: "DEPT1",
+      start_date: "2023-09-10",
+      end_date: "2023-09-16",
+    };
 
-    mock.fetchDeptEntry().then((res) => {
-      setDeptEntryHis(res);
-    });
-
-    mock.fetchWeekDeptEntry().then((res) => {
-      setWeekDeptEntryHis(res);
-      setLoading(false);
-    });
+    api
+      .post("hr/weeklyreport", rq)
+      .then((res) => {
+        setEntryStat(res["lateTable"]);
+        setLateDeptHis(res["lateDeptCount"]);
+        setWeeklyZoneLateHis(res["weeklyZoneLateCount"]);
+        setLoading(false);
+      })
+      .catch((error) => {
+        setEntryStat([]);
+        // setLoading(true);
+      });
   }, []);
 
   return (
     <div style={{ padding: "16px 16px" }}>
       <Form layout="inline" style={{ padding: "0 0 16px 0" }}>
-        <SearchForm updateViewZone={updateViewZone} />
+        <SearchForm search={search} />
       </Form>
       <Row gutter={[16, 16]}>
         <Col span={24}>
           <Card>週報說...</Card>
         </Col>
+
+        {loading ? (
+          <p>loading</p>
+        ) : (
+          <Col span={12}>
+            <Card>
+              {lateDeptHis.length === 0 ? (
+                <p>無資料</p>
+              ) : (
+                <Chart
+                  type="bar"
+                  width="100%"
+                  options={getBarChartOptions(empShiftList)}
+                  series={chartFormatter.groupZone(lateDeptHis, "late_count")}
+                />
+              )}
+            </Card>
+            <Card>
+              {weeklyZoneLateHis.length === 0 ? (
+                <p>無資料</p>
+              ) : (
+                <Chart
+                  type="bar"
+                  width="100%"
+                  options={getBarChartOptions(weekDayList)}
+                  series={chartFormatter.groupZone(
+                    weeklyZoneLateHis,
+                    "late_count"
+                  )}
+                />
+              )}
+            </Card>
+          </Col>
+        )}
+
         <Col span={12}>
-          <Card>
-            {viewByZone ? (
-              <Chart
-                type="bar"
-                width="100%"
-                options={getBarChartOptions(empShiftList)}
-                series={chartFormatter.countData(deptEntryHis)}
-              />
-            ) : (
-              <Chart
-                type="bar"
-                width="100%"
-                options={getBarChartOptions(empShiftList)}
-                series={chartFormatter.groupZone(deptEntryHis)}
-              />
-            )}
-          </Card>
-          <Card>
-            {viewByZone ? (
-              <Chart
-                type="bar"
-                width="100%"
-                options={getBarChartOptions(empShiftList)}
-                series={chartFormatter.countData(deptEntryHis)}
-              />
-            ) : (
-              <Chart
-                type="bar"
-                width="100%"
-                options={getBarChartOptions(weekDayList)}
-                series={chartFormatter.groupZone(weekDeptEntryHis)}
-              />
-            )}
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Table
-            dataSource={entryStat}
-            columns={columns}
-            loading={loading}
-            rowKey="Id"
-          />
+          {loading ? (
+            <p></p>
+          ) : (
+            <Table
+              dataSource={entryStat}
+              columns={columns}
+              loading={loading}
+              rowKey="entry_id"
+            />
+          )}
         </Col>
       </Row>
     </div>
