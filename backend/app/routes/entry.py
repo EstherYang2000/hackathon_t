@@ -621,29 +621,8 @@ def llmRealtime():
 @bp.route('/hr/weeklyreport/llm', methods=['POST','GET']) 
 def llmtext():
     
-    #{"week":"37","dept":"DEPT1","LLMtext":""}
-    # response2 = requests.get(f'/hr/weeklyreport')
-    # data2 = response2.json()
-    # print(data2)
-    # chartdata_1 = ""
-    # chartdata_2 = ""
-    # chartdata_3 = ""
-    # chart1_prompt = f"""以下請用繁體中文寫 zone代表工作的廠區 empshift是員工的應到班表時段 late_count是統計這週這部門底下這廠區這應到班表的遲到人數  請以'分析第一張長條圖的資料'為開頭, 再分析以下幾點 1.最多遲到人數的廠區 2.最多遲到人數的班表時段 3.分析資料還有什麼其他趨勢 最後建議主管可以採取什麼行動"
-
-    # "以下請用繁體中文寫 zone代表工作的廠區 late_count是統計這週這部門底下這廠區這天的遲到人數  請以'分析第二張長條圖的資料'為開頭, 再分析以下幾點 1.最多遲到人數的廠區 2.最多遲到人數的日期 3.分析資料還有什麼其他趨勢 最後建議主管可以採取什麼行動"
-
-    # "以下請用繁體中文寫 zone代表員工的工作廠區 entry_count是員工這週出勤的天數 late_count是員工這週遲到的天數  請以'分析右邊表格資料'為開頭, 再分析以下幾點 1.前幾名最常遲到的員工 2.前幾名出勤最少的員工 3.分析資料還有什麼其他趨勢 最後建議主管可以採取什麼行動\n{chartdata_1}"
-    # """
-    # chart2_prompt = f"""以下請用繁體中文寫 zone代表工作的廠區 late_count是統計這週這部門底下這廠區這天的遲到人數  
-    # 請以'分析第二張長條圖的資料'為開頭, 再分析以下幾點 1.最多遲到人數的廠區 2.最多遲到人數的日期 3.分析資料還有什麼其他趨勢 
-    # 最後建議主管可以採取什麼行動\n{chartdata_2}"""
-    # chart3_prompt = f"""以下請用繁體中文寫 zone代表工作的廠區 late_count是統計這週這部門底下這廠區這天的遲到人數  
-    # 請以'分析第二張長條圖的資料'為開頭, 再分析以下幾點 1.最多遲到人數的廠區 2.最多遲到人數的日期 3.分析資料還有什麼其他趨勢 
-    # 最後建議主管可以採取什麼行動\n{chartdata_3}"""
-    
     if request.method == 'POST':
-        # data = hrDashboard()   
-        # print(data)
+
         data = request.get_json() 
         zone = data['zone'] #ALL、AZ 、HQ
         start_date =  data['start_date']
@@ -652,17 +631,13 @@ def llmtext():
         date_obj = datetime.strptime(start_date, "%Y-%m-%d")
         week_num = date_obj.strftime("%V")
         data = {}
-        with open(f'app/routes/data/hr_report_w{week_num}.json') as f:
+        with open(f'app/routes/data/hr_report.json') as f:
             data = json.load(f) 
         llmtext = []
-        for item in data:
-            if zone != "ALL":
-                if item["zone"] == zone and item["dept"] == dept and item["week"] == int(week_num):
-                    llmtext.append({item['zone']:{"result":item["report"]}})
-            else:
-                if  item["dept"] == dept and item["week"] == int(week_num):
-                    llmtext.append({item['zone']:{"result":item["report"]}})
-        return {"llmtext":llmtext} 
+        if zone != 'ALL':  
+            return {'lateDeptCount' : {zone:data['lateDeptCount'][week_num][dept][zone]}, 'lateTable':{zone:data['lateTable'][week_num][dept][zone]},'weeklyZoneLateCount':{zone:data['weeklyZoneLateCount'][week_num][dept][zone]}}
+        else:
+            return {'lateDeptCount' :[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}], 'lateTable':[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}],'weeklyZoneLateCount':[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}]}
     
        
         
