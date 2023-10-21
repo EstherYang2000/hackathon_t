@@ -6,6 +6,7 @@ import Layouts from "../../components/Layouts";
 import TypingEffect from "../../utils/typingEffect";
 import api from "../../utils/api";
 import mock from "../../utils/mock";
+import dayjs from "dayjs";
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -25,6 +26,8 @@ function AnalysisResult() {
   const [isTypingComplete, setIsTypingComplete] = useState(false);
   const [result, setResult] = useState("");
   const [resultImage, setResultImage] = useState("");
+  // const cls = ["ElectronicDevice", "Laptop", "Scissor", "Knife", "Gun"];
+  const cls = ["電子設備", "筆記型電腦", "剪刀", "刀", "槍枝"];
 
   const handleTypingComplete = () => {
     setIsTypingComplete(true);
@@ -42,37 +45,44 @@ function AnalysisResult() {
     const formData = new FormData();
     formData.append("image", fileList[0].originFileObj);
 
-    // api.post(`${backendServiceUrl}/upload`, formData).then((res) => {(
-    //   (response) => {
-    //     if (response.status === 200) {
-    //       setLoading(false);
-    //       setShowResult(true);
-    //       message.success("Image uploaded successfully.");
-    //     } else {
-    //       message.error("Failed to upload image.");
-    //     }
-    //     return response.text();
-    //   })
-    //   .then((text) => {
-    //     console.log(text);
-    //     setResponseText(text);
-    //   })
-    //   .catch((error) => {
-    //     message.error("An error occurred while uploading the image.");
-    //     console.log(error);
-    //   });
+    fetch(`${backendServiceUrl}/model_inference`, {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => {
+        if (response.status === 200) {
+          setLoading(false);
+          setShowResult(true);
+          message.success("Image uploaded successfully.");
+        } else {
+          message.error("Failed to upload image.");
+        }
+        return response.json();
+      })
+      .then((rs) => {
+        // setResponseText(text);
+        setResult({
+          image: rs.image,
+          emp_id: rs.emp_id,
+          pred: rs.pred,
+        });
+      })
+      .catch((error) => {
+        message.error("An error occurred while uploading the image.");
+        console.log(error);
+      });
+
+    // mock.fetchScanResult().then(async (res) => {
+    //   const file = fileList[0];
+    //   if (!file.url && !file.preview) {
+    //     file.preview = await getBase64(file.originFileObj);
+    //   }
+    //   setResultImage(file.url || file.preview);
+    //   setResult(res);
+    //   setLoading(false);
+    //   setShowResult(true);
+    //   message.success("Image uploaded successfully.");
     // });
-    mock.fetchScanResult().then(async (res) => {
-      const file = fileList[0];
-      if (!file.url && !file.preview) {
-        file.preview = await getBase64(file.originFileObj);
-      }
-      setResultImage(file.url || file.preview);
-      setResult(res);
-      setLoading(false);
-      setShowResult(true);
-      message.success("Image uploaded successfully.");
-    });
   };
 
   const handleCancel = () => {
@@ -121,21 +131,32 @@ function AnalysisResult() {
             <Col span={24}>
               {showResult ? (
                 <div>
-                  <TypingEffect
+                  {/* <TypingEffect
                     text={responseText}
                     speed={100}
                     onTypingComplete={handleTypingComplete}
-                  />
+                  /> */}
+
                   <Row gutter={[16, 16]}>
                     <Col span={12}>
-                      <img style={{ width: "100%" }} src={resultImage} />
+                      <img
+                        style={{ width: "100%" }}
+                        src={
+                          process.env.REACT_APP_BACKEND_SERVICE_URL +
+                          "/" +
+                          result.image
+                        }
+                      />
                     </Col>
                     <Col span={12}>
-                      <p>員工編號：{result.EmpId}</p>
-                      <p>廠區：{result.Zone}</p>
-                      <p>部門：{result.DeptId}</p>
-                      <p>入廠時間：{result.DateTime}</p>
-                      <p>圖片：{result.Img}</p>
+                      <p>員工編號：{result.emp_id}</p>
+                      <p>入廠時間：{dayjs().format("YYYY-MM-DD HH:mm:ss")}</p>
+                      <h3>偵測結果</h3>
+                      <ul>
+                        {result.pred.map((o, i) => (
+                          <li>{`${cls[i]} : ${o}`}</li>
+                        ))}
+                      </ul>
                     </Col>
                   </Row>
                   <Button onClick={handleReset}>重新上傳</Button>
