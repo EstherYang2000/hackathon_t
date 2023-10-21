@@ -32,29 +32,30 @@ DEFAULT_LEVEL: int = DEBUG
 formatter = logging.Formatter("%(asctime)s | %(levelname)s | %(name)s | %(message)s")
 
 
-def create_handlers() -> list[logging.Handler]:
-    stream_handler = logging.StreamHandler()
-    stream_handler.setFormatter(formatter)
+# def create_handlers() -> list[logging.Handler]:
+#     stream_handler = logging.StreamHandler()
+#     stream_handler.setFormatter(formatter)
 
-    if os.path.isfile(BASE_PATH):
-        raise ValueError("Base path of the logger has been occupied.")
-    if not os.path.exists(BASE_PATH):
-        os.makedirs(BASE_PATH)
+#     if os.path.isfile(BASE_PATH):
+#         raise ValueError("Base path of the logger has been occupied.")
+#     if not os.path.exists(BASE_PATH):
+#         os.makedirs(BASE_PATH)
 
-    file_handler = logging.handlers.TimedRotatingFileHandler(
-        os.path.join(BASE_PATH, "log.log"),
-        when="midnight",
-        interval=1,
-        backupCount=14,  # 2 weeks
-        encoding="utf-8",
-    )
-    file_handler.setFormatter(formatter)
+#     file_handler = logging.handlers.TimedRotatingFileHandler(
+#         os.path.join(BASE_PATH, "log.log"),
+#         when="midnight",
+#         interval=1,
+#         backupCount=14,  # 2 weeks
+#         encoding="utf-8",
+#     )
+#     file_handler.setFormatter(formatter)
 
-    handlers = [stream_handler, file_handler]
-    return handlers
+#     handlers = [stream_handler, file_handler]
+#     return handlers
 
 
-_handlers = create_handlers()
+# _handlers = create_handlers()
+_handlers = []
 
 
 def setup_handler(logger: logging.Logger) -> None:

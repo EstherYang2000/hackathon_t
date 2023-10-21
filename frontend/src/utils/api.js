@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:5000/";
+const API_URL = "http://127.0.0.1:5004/";
 
 // const API_URL = "/Users/Emico/Desktop/hackathon_t/frontend/src/utils/data/";
 

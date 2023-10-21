@@ -8,4 +8,8 @@
 
 # echo "DB started"
 
-gunicorn -w 2 --bind 0.0.0.0:5000 run:app --timeout 120
+# gunicorn -w 2 --bind 0.0.0.0:5000 run:app --timeout 120 --preload
+
+flask run
+
+# gunicorn app:application —preload -b 0.0.0.0:5000

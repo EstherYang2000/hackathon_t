@@ -12,6 +12,16 @@ FROM python:3.11.4-buster
 # RUN apt-get update -y && apt-get update \
 #   && apt-get install -y --no-install-recommends curl gcc g++ gnupg unixodbc-dev apt-utils
 
+RUN apt-get install -y \
+  dos2unix \
+  libpq-dev \
+  libmariadb-dev-compat \
+  libmariadb-dev \
+  gcc \
+  && apt-get clean
+
+RUN python -m pip install --upgrade pip
+
 
 # set working directory
 WORKDIR /usr/src/app
@@ -21,19 +31,15 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install system dependencies (libmariadb3 libmariadb-dev-compat)
-RUN apt-get update \
-  && apt-get -y install netcat gcc libmariadb3 libmariadb-dev \
-  && apt-get clean
+# RUN apt-get update \
+#   && apt-get -y install netcat gcc libmariadb3 libmariadb-dev \
+#   && apt-get clean
 
 # add and install requirements
 COPY ./requirements.txt .
 RUN pwd && ls -l
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN pip install psycopg2
-RUN pip install psycopg2-binary
-RUN apt-get install -y python-psycopg2
-
 
 # add entrypoint.sh
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
@@ -41,3 +47,4 @@ RUN chmod +x /usr/src/app/entrypoint.sh
 
 # add app
 COPY . .
+# CMD flask run

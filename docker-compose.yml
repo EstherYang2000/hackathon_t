@@ -1,16 +1,36 @@
-version: "3.11"
+version: "3.8"
+networks:
+  counter-net:
+    driver: bridge
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    entrypoint: ["sh","/usr/src/app/entrypoint.sh"]
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   entrypoint: ["sh","/usr/src/app/entrypoint.sh"]
+  #   volumes:
+  #     - "./backend:/usr/src/app"
+  #   ports:
+  #     - 5004:5000
+  #   environment:
+  #     - FLASK_APP=app.py
+  #     - FLASK_RUN_HOST=0.0.0.0
+  #   env_file: ./backend/.env
+  #   restart: always
+  
+  db:
+    image: postgres:15
+    container_name: postgres
     volumes:
-      - "./backend:/usr/src/app"
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: hacker
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: hacker_TG
     ports:
-      - 5004:5000
-    env_file: ./backend/.env
+      - 5432:5432
+
   frontend:
     build:
       context: ./frontend
@@ -23,26 +43,3 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_BACKEND_SERVICE_URL=http://localhost:5004
-    depends_on:
-      - backend
-  # databases:
-  #   container_name: postgres_hacker
-  #   image: postgres:15
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - ./postgres-data:/var/lib/postgresql/data
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: hacker
-  #     POSTGRES_PASSWORD: root
-  #     POSTGRES_DB: hacker_TG
-  # pgadmin:
-  #   container_name : pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ester6126@gmail.com
-  #     PGADMIN_DEFAULT_PASSWORD: hacker123
-  #   ports:
-  #     - "5050:80"
