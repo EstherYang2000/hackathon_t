@@ -61,10 +61,8 @@ def model_inference():
         output['image'] = 'static/result.jpg'
         output['pred'] = pred
         output['emp_id'] = image.filename.split('.')[0]
-        try:
-            predict_image(output['emp_id'], *output['pred'])
-        except:
-            pass
+        predict_image(output['emp_id'], *output['pred'])
+       
         #return send_file('../runs/detect/result/inference.jpg', mimetype='image/jpg')
         # return Response(output, 200)
         return output
@@ -121,12 +119,14 @@ def predict_image(empId, type1, type2, type3, type4, type5):
     
 
     toolscantime = 0.5
-
-    with conn.cursor() as cur:
-        sql = "INSERT INTO public.empolyee_entry(entryid, empid, empshift, depid, zone, datetime, toolscantime, imgid, identity, date, time, week, weekday, timediff, lable, boundingresult, type1, type2, type3, type4, type5) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', null, '{}', '{}', '{}', '{}', '{}')"
-        sql = sql.format(entryid, empId, empshift, depid, zone, datatime_str, toolscantime, " ", identity, date, time, week, weekday, time_dif, label, type1, type2, type3, type4, type5)
-        print(sql)
-        cur.execute(sql)
+    try:
+        with conn.cursor() as cur:
+            sql = "INSERT INTO public.empolyee_entry(entryid, empid, empshift, depid, zone, datetime, toolscantime, imgid, identity, date, time, week, weekday, timediff, lable, boundingresult, type1, type2, type3, type4, type5) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', null, '{}', '{}', '{}', '{}', '{}')"
+            sql = sql.format(entryid, empId, empshift, depid, zone, datatime_str, toolscantime, " ", identity, date, time, week, weekday, time_dif, label, type1, type2, type3, type4, type5)
+            print(sql)
+            cur.execute(sql)
+    except:
+        pass
 
     late_event = "being late today"  # trigger = 1
     contraband_event = "bring contraband today" # trigger = 2
@@ -152,4 +152,4 @@ def predict_image(empId, type1, type2, type3, type4, type5):
     sendmail_condition('vincent826826@gmail.com',empId,trigger_events,datatime_str,contraband_object_list)
 
 
-    return sql
+    return empId,trigger_events,datatime_str,contraband_object_list
