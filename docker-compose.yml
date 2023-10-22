@@ -19,30 +19,9 @@ services:
       - "./frontend:/usr/src/app"
       - "/usr/src/app/node_modules"
     ports:
-      - 3002:3000
+      - 80:3000
     environment:
       - NODE_ENV=development
       - REACT_APP_BACKEND_SERVICE_URL=http://localhost:5004
     depends_on:
       - backend
-  # databases:
-  #   container_name: postgres_hacker
-  #   image: postgres:15
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - ./postgres-data:/var/lib/postgresql/data
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: hacker
-  #     POSTGRES_PASSWORD: root
-  #     POSTGRES_DB: hacker_TG
-  # pgadmin:
-  #   container_name : pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: ester6126@gmail.com
-  #     PGADMIN_DEFAULT_PASSWORD: hacker123
-  #   ports:
-  #     - "5050:80"

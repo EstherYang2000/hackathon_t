@@ -1,7 +1,8 @@
 import psycopg2
+import os
 
 conn = psycopg2.connect(
-    host="127.0.0.1",  # Use the container name #172.20.0.5
+    host= os.getenv("DB_HOST"),  # Use the container name #172.20.0.5
     database="hacker_TG",
     user="hacker",
     password="root",
