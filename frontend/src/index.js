@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import AnalysisResult from './pages/AnalysisResult';
+import ChatbotPage from './pages/chatbot';
 import reportWebVitals from './reportWebVitals';
 
 import {Card, Row, Col} from 'antd';
@@ -34,6 +35,7 @@ root.render(
     <Router>
       <Routes>
         <Route exact path="/" element={<AnalysisResult />} />
+        <Route path="/chat" element={<ChatbotPage />} />
         <Route path="*" element={<NoMatchPage />} />
       </Routes>
     </Router>

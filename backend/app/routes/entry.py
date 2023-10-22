@@ -631,14 +631,11 @@ def llmtext():
         date_obj = datetime.strptime(start_date, "%Y-%m-%d")
         week_num = date_obj.strftime("%V")
         data = {}
-        with open(f'app/routes/data/hr_report.json') as f:
+        with open(f'app/routes/data/final_hr_report.json') as f:
             data = json.load(f) 
-        llmtext = []
-        if zone != 'ALL':  
-            return {'lateDeptCount' : {zone:data['lateDeptCount'][week_num][dept][zone]}, 'lateTable':{zone:data['lateTable'][week_num][dept][zone]},'weeklyZoneLateCount':{zone:data['weeklyZoneLateCount'][week_num][dept][zone]}}
-        else:
-            return {'lateDeptCount' :[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}], 'lateTable':[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}],'weeklyZoneLateCount':[{'HQ':data['lateDeptCount'][week_num][dept]['HQ']},{"AZ":data['lateDeptCount'][week_num][dept]['AZ']}]}
-    
+        return {'lateDeptCount' : {zone:data['lateDeptCount'][week_num][dept][zone]}, 'lateTable':{zone:data['lateTable'][week_num][dept][zone]},'weeklyZoneLateCount':{zone:data['weeklyZoneLateCount'][week_num][dept][zone]}}
+            
+
        
         
         
