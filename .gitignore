@@ -169,5 +169,3 @@ backend/requirements.txt
 
 # venv
 tsmc
-
-postgres-data/
