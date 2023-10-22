@@ -2,7 +2,7 @@ import psycopg2
 
 # postgresql://hacker:root@db:5432/db_name
 conn = psycopg2.connect(
-    host="db",  # Use the container name #172.20.0.5
+    host="127.0.0.1",  # Use the container name #172.20.0.5
     database="hacker_TG",
     user="hacker",
     password="root",
