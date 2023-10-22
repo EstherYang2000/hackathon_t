@@ -7,9 +7,24 @@ import os
 import shutil
 from datetime import datetime
 from app.routes.db import conn
+from app.routes.mail import sendmail_condition
+
+
 
 _logger = my_logging.getLogger("config")
 
+@bp.route('/test', methods=['GET'])
+def send_email_():
+    late_event = "being late today"  # trigger = 1
+    contraband_event = "bring contraband today" # trigger = 2
+    trigger_events = []
+    trigger_events.append(late_event)
+    trigger_events.append(contraband_event)
+    empid = "EMP001"
+    late_time = "2023-09-11 07:57:00"
+    contraband_object_list = [1]
+    return sendmail_condition('vincent826826@gmail.com',empid,trigger_events,late_time,contraband_object_list)
+    
 
 @bp.route('/model_inference', methods=['POST'])
 def model_inference():
@@ -56,7 +71,8 @@ def model_inference():
     return Response('No image provided', 400)
 
 def predict_image(empId, type1, type2, type3, type4, type5):
-    return_dict = {}
+    
+    # sendmail_condition('vincent826826@gmail.com',empId,trigger_events,datatime_str,contraband_object_list)
     
     # empId = 
     now_time = datetime.now()
@@ -66,12 +82,12 @@ def predict_image(empId, type1, type2, type3, type4, type5):
     week = now_time.date().isocalendar()[1]
     weekday = now_time.weekday()
 
-    print(empId)
-    print(datatime_str)
-    print(date)
-    print(time)
-    print(week)
-    print(weekday)
+    # print(empId)
+    # print(datatime_str)
+    # print(date)
+    # print(time)
+    # print(week)
+    # print(weekday)
 
     with conn.cursor() as cur:
         sql = """
@@ -88,13 +104,13 @@ def predict_image(empId, type1, type2, type3, type4, type5):
 
         label = "normal" if time < empshift else "late"
 
-        print(label)
+        # print(label)
         time_dif = 0
         if label == "late":
             start = empshift
             end  = time
             time_dif = (end.hour - start.hour)*60 + end.minute - start.minute + (end.second - start.second)/60.0
-        print(int(time_dif))
+        # print(int(time_dif))
 
     with conn.cursor() as cur:
         sql = "SELECT MAX(CAST(entryid AS int)) FROM empolyee_entry"
@@ -105,18 +121,35 @@ def predict_image(empId, type1, type2, type3, type4, type5):
     
 
     toolscantime = 0.5
-    # bounding
-    # boundingresult = None
-    #result = [0 for i in range(5)]
-    # type1 = result[0]
-    # type2 = result[1]
-    # type3 = result[2]
-    # type4 = result[3]
-    # type5 = result[4]
 
     with conn.cursor() as cur:
         sql = "INSERT INTO public.empolyee_entry(entryid, empid, empshift, depid, zone, datetime, toolscantime, imgid, identity, date, time, week, weekday, timediff, lable, boundingresult, type1, type2, type3, type4, type5) VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', '{}', null, '{}', '{}', '{}', '{}', '{}')"
         sql = sql.format(entryid, empId, empshift, depid, zone, datatime_str, toolscantime, " ", identity, date, time, week, weekday, time_dif, label, type1, type2, type3, type4, type5)
         print(sql)
         cur.execute(sql)
+
+    late_event = "being late today"  # trigger = 1
+    contraband_event = "bring contraband today" # trigger = 2
+    trigger_events = []
+
+    if time_dif > 0:
+        trigger_events.append(late_event)
+    if type1 > 0 or type2 > 0 and type3 > 0 and type4 > 0 and type5> 0:
+        trigger_events.append(contraband_event)
+
+    contraband_object_list = []
+    if type1 > 0:
+        contraband_object_list.append(1)
+    if type2 > 0:
+        contraband_object_list.append(2)
+    if type3 > 0:
+        contraband_object_list.append(3)
+    if type4 > 0:
+        contraband_object_list.append(4)
+    if type5 > 0:
+        contraband_object_list.append(5)
+    
+    sendmail_condition('vincent826826@gmail.com',empId,trigger_events,datatime_str,contraband_object_list)
+
+
     return sql
