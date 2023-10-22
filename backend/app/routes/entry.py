@@ -614,8 +614,7 @@ def llmRealtime():
             prompt += str(data)
             print(prompt)
             response, conversation_id = LLM(prompt, conversation_id="0")
-        else:
-            response, conversation_id = LLM(input, conversation_id)
+        response, conversation_id = LLM(input, conversation_id)
     return {"response":response , "conversation_id":conversation_id}
 
 @bp.route('/hr/weeklyreport/llm', methods=['POST','GET']) 

@@ -100,7 +100,6 @@ def sec_llmRealtime():
             代表 週一帶了106個Electronic Device 週二有114 週三有123 週四有137 週五有129 {data2}"""
             print(prompt)
             response, conversation_id = LLM(prompt, conversation_id="0")
-        else:
-            response, conversation_id = LLM(input, conversation_id)
+        response, conversation_id = LLM(input, conversation_id)
     return {"response":response , "conversation_id":conversation_id}
 
